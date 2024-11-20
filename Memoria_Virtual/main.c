@@ -4,8 +4,8 @@
 
 int main(){
 
-    Arv45Mem *Raiz; 
-    Raiz = NULL; 
+    Arv45Mem *Memoria; 
+    Memoria = NULL; 
     int op1, op2; 
 
     do{
@@ -18,6 +18,7 @@ int main(){
                break; 
             case 1: 
                //Monta os blocos
+               construir_memoria_do_sistema(&Memoria);  
                break; 
             case 2: 
                 //Funcionalidades
@@ -30,6 +31,7 @@ int main(){
                            break;
                         case 1: 
                              //Alocar Memória 
+                             imprimirArvore45(Memoria); 
                              break; 
                         case 2: 
                              //Liberar Memória
