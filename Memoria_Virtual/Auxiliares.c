@@ -4,7 +4,7 @@
 
 void construir_memoria_do_sistema(Arv45Mem **Raiz) {
     if (*Raiz == NULL) {
-        int tamanho;
+        int tamanho, situacao;
         Inf45 Informacao;
 
         printf("Digite quantos GB sua memória possui: ");
@@ -24,27 +24,37 @@ void construir_memoria_do_sistema(Arv45Mem **Raiz) {
             scanf("%d", &Informacao.intervalo);
 
             // Ajustar o bloco final baseado no intervalo
-            Informacao.bloco_fim = Informacao.bloco_inicio + Informacao.intervalo;
+            Informacao.bloco_fim = Informacao.bloco_inicio + Informacao.intervalo - 1;
 
-            // Ajustar para não exceder o tamanho total
-            if (Informacao.bloco_fim > tamanho) {
+            // Garantir que o último bloco seja preenchido
+            if (Informacao.bloco_fim >= tamanho) {
                 Informacao.bloco_fim = tamanho;
-                Informacao.intervalo = Informacao.bloco_fim - Informacao.bloco_inicio;
+                Informacao.intervalo = Informacao.bloco_fim - Informacao.bloco_inicio + 1;
             }
 
-            // Inserir na árvore (função a ser implementada)
-            inserir_na_arvore_45(Raiz, Informacao);
+            printf("Tentando inserir: Início: %d, Fim: %d, Intervalo: %d, Status: %s\n",
+                   Informacao.bloco_inicio, Informacao.bloco_fim, Informacao.intervalo,
+                   Informacao.status == LIVRE ? "LIVRE" : "OCUPADO");
+
+            // Inserir na árvore
+            insereArv45(Raiz, Informacao, NULL, NULL, &situacao);
+
+            // Verificar se a inserção foi bem-sucedida
+            if (situacao == 1) {
+                printf("Intervalo [%d, %d] (%s) inserido com sucesso.\n",
+                       Informacao.bloco_inicio, Informacao.bloco_fim,
+                       Informacao.status == LIVRE ? "LIVRE" : "OCUPADO");
+            } else {
+                printf("Falha ao inserir o intervalo [%d, %d].\n",
+                       Informacao.bloco_inicio, Informacao.bloco_fim);
+                break;
+            }
 
             // Alternar o status (livre/ocupado) para o próximo intervalo
-            if (Informacao.status == LIVRE) {
-                Informacao.status = OCUPADO;
-            } else {
-                Informacao.status = LIVRE;
-            }
-
+            Informacao.status = (Informacao.status == LIVRE) ? OCUPADO : LIVRE;
 
             // Atualizar o início para o próximo bloco
-            Informacao.bloco_inicio = Informacao.bloco_fim;
+            Informacao.bloco_inicio = Informacao.bloco_fim + 1;
         }
 
         printf("Memória alocada com sucesso!\n");
@@ -52,3 +62,8 @@ void construir_memoria_do_sistema(Arv45Mem **Raiz) {
         printf("Memória já construída.\n");
     }
 }
+
+
+
+
+
