@@ -11,7 +11,6 @@ Arv45Mem *criar_no_Arv45(Inf45 Info, Arv45Mem *Filho_esq, Arv45Mem *Filho_cen1){
 
     Novo_no = (Arv45Mem*)malloc(sizeof(Arv45Mem)); 
     if(Novo_no == NULL){
-        printf("Falha na alocação\n"); 
         exit(1);
     }else{
         memset(Novo_no, 0, sizeof(Arv45Mem));
@@ -38,8 +37,6 @@ int ehfolha(Arv45Mem *no) {
 }
 
 Arv45Mem *Adiciona_chave(Arv45Mem *no_atual, Inf45 Info, Arv45Mem *Maior_No) {
-    printf("Adicionando chave [%d, %d] no nó.\n", Info.bloco_inicio, Info.bloco_fim);
-
     if (no_atual->N_infos == 0) {
         // Adiciona diretamente na primeira posição
         no_atual->info1 = Info;
@@ -101,14 +98,6 @@ Arv45Mem *Adiciona_chave(Arv45Mem *no_atual, Inf45 Info, Arv45Mem *Maior_No) {
     // Incrementar o número de informações no nó
     no_atual->N_infos++;
 
-    // Logs para depuração
-    printf("Nó atualizado após adicionar chave:\n");
-    printf("Info1: [%d, %d] | Info2: [%d, %d] | Info3: [%d, %d] | Info4: [%d, %d]\n",
-           no_atual->info1.bloco_inicio, no_atual->info1.bloco_fim,
-           no_atual->info2.bloco_inicio, no_atual->info2.bloco_fim,
-           no_atual->info3.bloco_inicio, no_atual->info3.bloco_fim,
-           no_atual->info4.bloco_inicio, no_atual->info4.bloco_fim);
-
     return no_atual;
 }
 
@@ -118,15 +107,7 @@ Arv45Mem *Adiciona_chave(Arv45Mem *no_atual, Inf45 Info, Arv45Mem *Maior_No) {
 Arv45Mem *QuebraNo(Arv45Mem **No, Inf45 Info, Inf45 *Promove, Arv45Mem *Filho) {
     Arv45Mem *Maior;
 
-    // Logs iniciais
-    printf("Iniciando quebra do nó...\n");
-    printf("Nó atual antes da quebra:\n");
-    printf("Info1: [%d, %d] | Info2: [%d, %d] | Info3: [%d, %d] | Info4: [%d, %d]\n",
-           (*No)->info1.bloco_inicio, (*No)->info1.bloco_fim,
-           (*No)->info2.bloco_inicio, (*No)->info2.bloco_fim,
-           (*No)->info3.bloco_inicio, (*No)->info3.bloco_fim,
-           (*No)->info4.bloco_inicio, (*No)->info4.bloco_fim);
-
+    
     // Determinar qual chave será promovida
     if (Info.bloco_inicio > (*No)->info4.bloco_inicio) {
         *Promove = (*No)->info3; // Promove info3
@@ -165,14 +146,6 @@ Arv45Mem *QuebraNo(Arv45Mem **No, Inf45 Info, Inf45 *Promove, Arv45Mem *Filho) {
     (*No)->dir = NULL;
 
     // Logs após a atualização
-    printf("Nó original atualizado após a quebra:\n");
-    printf("Info1: [%d, %d] | Info2: [%d, %d]\n",
-           (*No)->info1.bloco_inicio, (*No)->info1.bloco_fim,
-           (*No)->info2.bloco_inicio, (*No)->info2.bloco_fim);
-    printf("Novo nó criado durante a quebra:\n");
-    printf("Info1: [%d, %d]\n", Maior->info1.bloco_inicio, Maior->info1.bloco_fim);
-
-    printf("Chave promovida: [%d, %d]\n", Promove->bloco_inicio, Promove->bloco_fim);
 
     return Maior;
 }
@@ -186,41 +159,22 @@ Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai,
     Inf45 promove_local;
 
     if (*no == NULL) {
-        // Criar o primeiro nó se a árvore estiver vazia
-        printf("Criando o primeiro nó com início: %d, fim: %d, status: %s\n",
-               Info.bloco_inicio, Info.bloco_fim,
-               Info.status == LIVRE ? "LIVRE" : "OCUPADO");
-
         *no = criar_no_Arv45(Info, NULL, NULL);
         if (*no == NULL) {
-            printf("Erro: Falha na alocação do nó.\n");
             *situacao = 0; // Falha de alocação
         } else {
-            printf("Nó criado com sucesso!\n");
             *situacao = 1; // Sucesso
         }
     } else {
-        printf("Processando nó existente...\n");
-        printf("Nó atual - Info1: [%d, %d] (%s)\n",
-               (*no)->info1.bloco_inicio, (*no)->info1.bloco_fim,
-               (*no)->info1.status == LIVRE ? "LIVRE" : "OCUPADO");
-
         if (ehfolha(*no)) {
-            printf("Nó é folha. Tentando inserir...\n");
-
             if ((*no)->N_infos < 4) {
                 *no = Adiciona_chave(*no, Info, NULL);
-                printf("Inserção direta bem-sucedida no nó folha.\n");
                 *situacao = 1; // Sucesso
             } else {
-                printf("Nó está cheio. Realizando quebra.\n");
                 MaiorNo = QuebraNo(no, Info, &promove_local, NULL);
 
                 if (Pai == NULL || *Pai == NULL) {
-                    printf("Criando nova raiz após a quebra...\n");
                     *no = criar_no_Arv45(promove_local, *no, MaiorNo);
-                    printf("Nova raiz criada com promoção de [%d, %d].\n",
-                           promove_local.bloco_inicio, promove_local.bloco_fim);
                     MaiorNo = NULL;
                 } else {
                     *promove = promove_local;
@@ -228,39 +182,38 @@ Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai,
                 *situacao = 1;
             }
         } else {
-            // Nó não é folha, precisa descer na árvore
-            printf("Nó não é folha. Descendo na árvore...\n");
 
             if (Info.bloco_inicio < (*no)->info1.bloco_inicio) {
-                printf("Descendo para a esquerda.\n");
+
                 MaiorNo = insereArv45(&((*no)->esq), Info, &promove_local, no, situacao);
+
             } else if ((*no)->N_infos == 1 || (Info.bloco_inicio < (*no)->info2.bloco_inicio)) {
-                printf("Descendo para o centro 1.\n");
+               
                 MaiorNo = insereArv45(&((*no)->cent1), Info, &promove_local, no, situacao);
+
             } else if ((*no)->N_infos == 2 || (Info.bloco_inicio < (*no)->info3.bloco_inicio)) {
-                printf("Descendo para o centro 2.\n");
+              
                 MaiorNo = insereArv45(&((*no)->cent2), Info, &promove_local, no, situacao);
+
             } else if ((*no)->N_infos == 3 || (Info.bloco_inicio < (*no)->info4.bloco_inicio)) {
-                printf("Descendo para o centro 3.\n");
+              
                 MaiorNo = insereArv45(&((*no)->cent3), Info, &promove_local, no, situacao);
+
             } else {
-                printf("Descendo para a direita.\n");
+                
                 MaiorNo = insereArv45(&((*no)->dir), Info, &promove_local, no, situacao);
             }
 
             // Após a recursão, lidar com o nó promovido
             if (MaiorNo != NULL) {
-                if ((*no)->N_infos < 4) {
-                    printf("Inserindo promovido diretamente no nó pai.\n");
+                if ((*no)->N_infos < 4) {                   
                     *no = Adiciona_chave(*no, promove_local, MaiorNo);
                     MaiorNo = NULL;
-                } else {
-                    printf("Nó pai está cheio. Realizando quebra.\n");
+                } else {                  
                     Inf45 promove1;
                     MaiorNo = QuebraNo(no, promove_local, &promove1, MaiorNo);
 
                     if (Pai == NULL || *Pai == NULL) {
-                        printf("Criando nova raiz após quebra do pai...\n");
                         *no = criar_no_Arv45(promove1, *no, MaiorNo);
                         MaiorNo = NULL;
                     } else {
@@ -292,9 +245,9 @@ void imprimirInfo(Inf45 info) {
 }
 
 void imprimirArvore45(Arv45Mem *raiz) {
-    if (raiz == NULL) {
-        return;
-    }
+    if (raiz != NULL) {
+        
+    
 
     // Percorre o filho esquerdo
     imprimirArvore45(raiz->esq);
@@ -324,4 +277,126 @@ void imprimirArvore45(Arv45Mem *raiz) {
 
     // Percorre o filho direito
     imprimirArvore45(raiz->dir);
+
+    }
+}
+
+
+Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int localizacao_info) {
+    Inf45 *info = NULL;
+
+    // Selecionar a Info correta com base na localização
+    if (localizacao_info == 1){ 
+        info = &Raiz->info1;
+    }else if (localizacao_info == 2){ 
+        info = &Raiz->info2;
+    }else if (localizacao_info == 3){ 
+        info = &Raiz->info3;
+    }else if (localizacao_info == 4){ 
+        info = &Raiz->info4;
+    }
+
+    if (operacao == 1) {
+        // Operação de adicionar blocos
+        info->bloco_inicio -= qtd_blocos; // Recuar o início do bloco
+        info->intervalo += qtd_blocos;   // Aumentar o intervalo
+    } else if (operacao == 2) {
+        // Operação de subtrair blocos
+        info->bloco_fim -= qtd_blocos;   // Reduzir o tamanho do bloco
+        info->intervalo -= qtd_blocos;  // Reduzir o intervalo
+
+    }
+
+    return Raiz;
+}
+
+
+
+int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
+    int alocou = 0; // Status inicial: não encontrou bloco livre.
+    //0, significa que não encontrou um bloco livre.
+    // 1  significa que encontrei um bloco com espaço suficiente pra tomar parte de suas unidades (mas ficou pendencia, se não encontrei um bloco adjacente) (*** deve ser tratado externamente, com a criação de um novo nó)
+    //2 significa que deu certo, encontrei um bloco com espaço suficiente pra tomar parte de suas unidades e que eu já aloquei o espaço pra outro bloco, não há mais pendencia (quando tudo é resolvido no próprio Nó)
+    //3 significa que deu certo, encontrei um bloco com espaço suficiente pra retirar seus blocos e que eu já aloquei o espaço pra outro bloco, mas esse bloco livre ficou vazio, ele precisa ser excluído. (Sem pendencia de manipulação, os blocos foram para o outro bloco do mesmo nó)
+    //4 significa que deu certo, encontrei um bloco com espaço suficiente pra retirar seus blocos e que eu já aloquei o espaço pra outro bloco, mas esse bloco livre ficou vazio, ele precisa ser excluído. (Ficou pendencia de inserção desses blocos)
+
+    if (Raiz != NULL) {
+        // Tentar alocar nos filhos à esquerda primeiro
+        alocou = alocar_memoria(Raiz->esq, qtd_blocos);
+
+        if (alocou == 0) {
+            // Percorrer as Infos do nó atual
+            for (int i = 1; i <= Raiz->N_infos; i++) {
+                Inf45 *info = NULL;
+
+                // Selecionar a Info correta
+                if (i == 1){
+                     info = &Raiz->info1;
+                }else if (i == 2){
+                     info = &Raiz->info2;
+                }else if (i == 3){
+                     info = &Raiz->info3;
+                }else if (i == 4){
+                     info = &Raiz->info4;
+                }     
+
+                // Verificar se a Info é LIVRE e tem espaço suficiente
+                if (info->status == LIVRE && info->intervalo >= qtd_blocos) {
+                    if (qtd_blocos < info->intervalo) {
+                        // Caso: Bloco LIVRE tem mais espaço do que o necessário
+                        Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i); // Reduz o intervalo do bloco LIVRE
+                        alocou = 2; // Alocação resolvida no próprio nó
+                        break;
+                    } else {
+                        // Caso: Bloco LIVRE tem exatamente o espaço necessário
+                        info->status_apagar = APAGAR; // Marcar o bloco para exclusão
+                        alocou = 4; // Pendência de exclusão
+                        break;
+                    }
+                }
+            }
+
+            if (alocou == 0) {
+                // Tentar alocar nos filhos centrais e à direita
+                alocou = alocar_memoria(Raiz->cent1, qtd_blocos);
+                if (alocou == 0 && Raiz->cent2 != NULL){ 
+                    alocou = alocar_memoria(Raiz->cent2, qtd_blocos);
+                }    
+                if (alocou == 0 && Raiz->cent3 != NULL){
+                     alocou = alocar_memoria(Raiz->cent3, qtd_blocos);
+                }     
+                
+                if (alocou == 0){
+                     alocou = alocar_memoria(Raiz->dir, qtd_blocos);
+                }     
+            }
+        }
+
+        // Resolver pendências de inserção (casos alocou == 2 ou == 4)
+        if (alocou == 2 || alocou == 4) {
+            for (int i = 1; i <= Raiz->N_infos; i++) {
+                Inf45 *info = NULL;
+
+                // Selecionar a Info correta
+                if (i == 1) info = &Raiz->info1;
+                else if (i == 2) info = &Raiz->info2;
+                else if (i == 3) info = &Raiz->info3;
+                else if (i == 4) info = &Raiz->info4;
+
+                if (info->status == OCUPADO) {
+                    // Verificar se este bloco é adjacente ao LIVRE reduzido
+
+                    // Expandir o bloco OCUPADO
+                    Raiz = atualizar_bloco(Raiz, qtd_blocos, 1, i); // Operação 1 = somar blocos
+
+                    if (alocou == 4) {
+                        alocou = 3; // Resolvido completamente, mas o bloco original deve ser apagado
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    return alocou; // Retorna o status da alocação
 }
