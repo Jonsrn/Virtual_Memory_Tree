@@ -31,9 +31,10 @@ int main(){
                            break;
                         case 1: 
                              //Alocar Memória 
-                             imprimirArvore45(Memoria); 
+                             alocar_memoria_para_programa(&Memoria);  
                              break; 
                         case 2: 
+                             imprimirArvore45(Memoria); 
                              //Liberar Memória
                              break; 
                         default: 
