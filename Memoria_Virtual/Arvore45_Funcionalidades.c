@@ -3,8 +3,8 @@
 #include <string.h>
 #include "Gerenciamento_Memoria.h"
 
-//
 
+//Função de criação do Nó da 4-5
 Arv45Mem *criar_no_Arv45(Inf45 Info, Arv45Mem *Filho_esq, Arv45Mem *Filho_cen1){
     Arv45Mem *Novo_no; 
     Novo_no = NULL; 
@@ -36,6 +36,7 @@ int ehfolha(Arv45Mem *no) {
     return (no != NULL && no->esq == NULL);
 }
 
+//Função que adiciona infos em um nó com espaço disponivel
 Arv45Mem *Adiciona_chave(Arv45Mem *no_atual, Inf45 Info, Arv45Mem *Maior_No) {
     if (no_atual->N_infos == 0) {
         // Adiciona diretamente na primeira posição
@@ -103,7 +104,7 @@ Arv45Mem *Adiciona_chave(Arv45Mem *no_atual, Inf45 Info, Arv45Mem *Maior_No) {
 
 
 
-
+//Função que quebra o nó quando não há mais espaço disponivel, o do meio é promovido, e os dois maiores vão pra um novo nó
 Arv45Mem *QuebraNo(Arv45Mem **No, Inf45 Info, Inf45 *Promove, Arv45Mem *Filho) {
     Arv45Mem *Maior;
 
@@ -153,7 +154,7 @@ Arv45Mem *QuebraNo(Arv45Mem **No, Inf45 Info, Inf45 *Promove, Arv45Mem *Filho) {
 
 
 
-
+//Função base de inserção na árvore 4-5
 Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai, int *situacao) {
     Arv45Mem *MaiorNo = NULL;
     Inf45 promove_local;
@@ -233,22 +234,23 @@ Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai,
 
 
 
-
+//Função que imprime detalhadamente as informações de cada INFO de cada Nó
 void imprimirInfo(Inf45 info) {
     if (info.status_apagar == APAGAR) {
         printf("Status: APAGAR | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d\n",
                info.bloco_inicio, info.bloco_fim,
                info.bloco_fim - info.bloco_inicio);
     } else if (info.bloco_fim >= info.bloco_inicio) { 
-        printf("Status: %s | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d\n",
+        printf("Status: %s | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d| Situacao: %s \n",
                info.status == LIVRE ? "LIVRE" : "OCUPADO",
                info.bloco_inicio, info.bloco_fim,
-               info.bloco_fim - info.bloco_inicio);
+               info.bloco_fim - info.bloco_inicio, info.status_apagar == MANTER ? "MANTER" : "APAGAR");
     } else {
         printf("Informação inválida detectada: Início: %d, Fim: %d\n", info.bloco_inicio, info.bloco_fim);
     }
 }
 
+//Função base de impressão da 4-5
 void imprimirArvore45(Arv45Mem *raiz) {
     if (raiz != NULL) {
         
@@ -287,6 +289,8 @@ void imprimirArvore45(Arv45Mem *raiz) {
 }
 
 //Funções relacionadas a alocação e desalocação dos blocos. 
+
+//essa função serve pra saber se estou na ultima info da árvore
 int eh_ultimo(Arv45Mem *Raiz, int localizacao_info) {
     int ultimo = 0;
 
@@ -305,7 +309,7 @@ int eh_ultimo(Arv45Mem *Raiz, int localizacao_info) {
 
 
 
-
+//Essa função serve para atualizar o bloco encontrado que atenda aos requisitos de alocação ou desalocação (funciona pra ambos os casos)
 Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int localizacao_info, int *situacao) {
     Inf45 *info = NULL;
 
@@ -358,7 +362,8 @@ Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int loca
 }
 
 
-
+//Essa função cuida de manter todos os intervalos estruturados após as operações de alocação/desalocação, além disso
+//há duas situações, se o bloco mexido não for o ultimo, a reestruturação é da esquerda pra direita, se for o último, a reestruturação é da direita pra esquerda
 int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
     int ajustes_realizados = 0; // Indica se ajustes foram feitos
 
@@ -369,10 +374,16 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
 
             // Processa Info1 e a subárvore cent1
             if (Raiz->info1.status_apagar == MANTER) {
-                if (*bloco_anterior != NULL) {
-                    // Verifica se os blocos estão alinhados
+                if (*bloco_anterior == NULL) {
+                    // Caso especial: Primeiro bloco válido encontrado, inicializar em 0
+                    if (Raiz->info1.bloco_inicio != 0) {
+                        Raiz->info1.bloco_inicio = 0;
+                        Raiz->info1.intervalo = Raiz->info1.bloco_fim - Raiz->info1.bloco_inicio + 1;
+                        ajustes_realizados = 1;
+                    }
+                } else {
+                    // Verifica alinhamento dos blocos
                     if ((*bloco_anterior)->bloco_fim + 1 != Raiz->info1.bloco_inicio) {
-                        // Ajusta o início do bloco atual para alinhar
                         Raiz->info1.bloco_inicio = (*bloco_anterior)->bloco_fim + 1;
                         ajustes_realizados = 1; // Ajuste foi feito
                     }
@@ -388,12 +399,19 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
             }
             ajustes_realizados |= ajustando_os_intervalos(Raiz->cent1, bloco_anterior, opcao);
 
-            // Processa Info2 e as subárvores cent2 (se existir)
+            // Processa Info2 e a subárvore cent2 (se existir)
             if (Raiz->N_infos >= 2 && Raiz->info2.status_apagar == MANTER) {
-                if (*bloco_anterior != NULL) {
+                if (*bloco_anterior == NULL) {
+                    // Caso especial: Primeiro bloco válido encontrado, inicializar em 0
+                    if (Raiz->info2.bloco_inicio != 0) {
+                        Raiz->info2.intervalo = Raiz->info2.bloco_fim - Raiz->info2.bloco_inicio + 1;
+                        Raiz->info2.bloco_inicio = 0;
+                        ajustes_realizados = 1;
+                    }
+                } else {
                     if ((*bloco_anterior)->bloco_fim + 1 != Raiz->info2.bloco_inicio) {
                         Raiz->info2.bloco_inicio = (*bloco_anterior)->bloco_fim + 1;
-                        ajustes_realizados = 1; // Ajuste foi feito
+                        ajustes_realizados = 1;
                     }
                 }
                 int novo_intervalo = Raiz->info2.bloco_fim - Raiz->info2.bloco_inicio + 1;
@@ -405,12 +423,12 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
             }
             ajustes_realizados |= ajustando_os_intervalos(Raiz->cent2, bloco_anterior, opcao);
 
-            // Processa Info3 e as subárvores cent3
+            // Processa Info3 e a subárvore cent3
             if (Raiz->N_infos >= 3 && Raiz->info3.status_apagar == MANTER) {
                 if (*bloco_anterior != NULL) {
                     if ((*bloco_anterior)->bloco_fim + 1 != Raiz->info3.bloco_inicio) {
                         Raiz->info3.bloco_inicio = (*bloco_anterior)->bloco_fim + 1;
-                        ajustes_realizados = 1; // Ajuste foi feito
+                        ajustes_realizados = 1;
                     }
                 }
                 int novo_intervalo = Raiz->info3.bloco_fim - Raiz->info3.bloco_inicio + 1;
@@ -427,7 +445,7 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
                 if (*bloco_anterior != NULL) {
                     if ((*bloco_anterior)->bloco_fim + 1 != Raiz->info4.bloco_inicio) {
                         Raiz->info4.bloco_inicio = (*bloco_anterior)->bloco_fim + 1;
-                        ajustes_realizados = 1; // Ajuste foi feito
+                        ajustes_realizados = 1;
                     }
                 }
                 int novo_intervalo = Raiz->info4.bloco_fim - Raiz->info4.bloco_inicio + 1;
@@ -438,7 +456,6 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
                 *bloco_anterior = &Raiz->info4;
             }
             ajustes_realizados |= ajustando_os_intervalos(Raiz->dir, bloco_anterior, opcao);
-
         } else if (opcao == 2) {
             // Processa a subárvore direita primeiro (ordem invertida)
             ajustes_realizados |= ajustando_os_intervalos(Raiz->dir, bloco_anterior, opcao);
@@ -516,7 +533,7 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
     return ajustes_realizados; // Retorna 1 se ajustes foram realizados, 0 caso contrário
 }
 
-
+//função que cuida de encontrar uma INFO com a TAG LIVRE, com espaço suficiente pra comportar a operação
 int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
     int alocou = 0; // Status inicial: não encontrou bloco livre.
     //0, significa que não encontrou um bloco livre.
@@ -543,12 +560,14 @@ int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
                      info = &Raiz->info3;
                 }else if (i == 4){
                      info = &Raiz->info4;
-                }     
+                }  
+
+                int situacao;    
 
                 // Verificar se a Info é LIVRE e tem espaço suficiente
                 if (info->status == LIVRE && info->intervalo >= qtd_blocos) {
                     if (qtd_blocos < info->intervalo) {
-                        int situacao; 
+                        
                         situacao = 0; 
                         // Caso: Bloco LIVRE tem mais espaço do que o necessário
                         Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco LIVRE
@@ -562,6 +581,7 @@ int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
                         break;
                     } else {
                         // Caso: Bloco LIVRE tem exatamente o espaço necessário
+                        Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco LIVRE
                         info->status_apagar = APAGAR; // Marcar o bloco para exclusão
                         alocou = 4; // Pendência de exclusão
                         break;
@@ -590,7 +610,7 @@ int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
     return alocou; // Retorna o status da alocação
 }
 
-
+//Função que cuida de encontrar a info com a TAG OCUPADO, com espaço suficiente pra liberação 
 int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos){
     int desalocou = 0;
     
@@ -614,11 +634,11 @@ int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos){
                 }else if (i == 4){
                      info = &Raiz->info4;
                 }     
-
+                int situacao; 
                 // Verificar se a Info é OCUPADA e tem espaço suficiente para ser liberada
                 if (info->status == OCUPADO && info->intervalo >= qtd_blocos) {
                     if (qtd_blocos < info->intervalo) {
-                        int situacao; 
+                        
                         situacao = 0; 
                         // Caso: Bloco OCUPADO tem mais espaço do que o necessário
                         Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco OCUPADO
@@ -632,6 +652,7 @@ int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos){
                         break;
                     } else {
                         // Caso: Bloco OCUPADO tem exatamente o espaço necessário
+                        Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco OCUPADO
                         info->status_apagar = APAGAR; // Marcar o bloco para exclusão
                         desalocou = 4; // Pendência de exclusão
                         break;
@@ -654,16 +675,285 @@ int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos){
                 }     
             }
         }
-        
+    }
+    return desalocou; 
+}
 
+//Falta as funções de agrupamento, e remoção. 
 
+//o agrupamento vai percorrer a árvore, em busca de nós adjacentes iguais (LIVRE com LIVRE ou OCUPADO com OCUPADO)
+//Desconsiderando as infos que estão com a TAG APAGAR, a função ao encontrar essa situação, pegará os blocos da info atual e atualizará a anterior com a soma
+//A info atual receberá tbm a TAG APAGAR
 
+int agrupar_infos(Arv45Mem *Raiz, Inf45 **info_anterior) {
+    int agrupamento_realizado = 0; // Indica se agrupamentos foram realizados
 
+    if (Raiz != NULL) {
+        // Percorre a subárvore esquerda primeiro
+        agrupamento_realizado |= agrupar_infos(Raiz->esq, info_anterior);
 
+        // Processa Info1 e a subárvore cent1
+        if (Raiz->info1.status_apagar == MANTER) {
+            if (*info_anterior != NULL) {
+                // Verifica se os blocos adjacentes têm o mesmo status
+                if ((*info_anterior)->status == Raiz->info1.status) {
+                    // Agrupa os blocos
+                    (*info_anterior)->bloco_fim = Raiz->info1.bloco_fim;
+                    (*info_anterior)->intervalo = (*info_anterior)->bloco_fim - (*info_anterior)->bloco_inicio + 1;
+
+                    // Marca a Info1 atual como APAGAR
+                    Raiz->info1.status_apagar = APAGAR;
+                    agrupamento_realizado = 1; // Indica que um agrupamento foi realizado
+                }
+            }
+            // Atualiza a Info anterior para a próxima iteração
+            *info_anterior = &Raiz->info1;
+        }
+        agrupamento_realizado |= agrupar_infos(Raiz->cent1, info_anterior);
+
+        // Processa Info2 e a subárvore cent2 (se existir)
+        if (Raiz->N_infos >= 2 && Raiz->info2.status_apagar == MANTER) {
+            if (*info_anterior != NULL) {
+                if ((*info_anterior)->status == Raiz->info2.status) {
+                    (*info_anterior)->bloco_fim = Raiz->info2.bloco_fim;
+                    (*info_anterior)->intervalo = (*info_anterior)->bloco_fim - (*info_anterior)->bloco_inicio + 1;
+                    Raiz->info2.status_apagar = APAGAR;
+                    agrupamento_realizado = 1;
+                }
+            }
+            *info_anterior = &Raiz->info2;
+        }
+        agrupamento_realizado |= agrupar_infos(Raiz->cent2, info_anterior);
+
+        // Processa Info3 e a subárvore cent3 (se existir)
+        if (Raiz->N_infos >= 3 && Raiz->info3.status_apagar == MANTER) {
+            if (*info_anterior != NULL) {
+                if ((*info_anterior)->status == Raiz->info3.status) {
+                    (*info_anterior)->bloco_fim = Raiz->info3.bloco_fim;
+                    (*info_anterior)->intervalo = (*info_anterior)->bloco_fim - (*info_anterior)->bloco_inicio + 1;
+                    Raiz->info3.status_apagar = APAGAR;
+                    agrupamento_realizado = 1;
+                }
+            }
+            *info_anterior = &Raiz->info3;
+        }
+        agrupamento_realizado |= agrupar_infos(Raiz->cent3, info_anterior);
+
+        // Processa Info4 e a subárvore direita (se existir)
+        if (Raiz->N_infos >= 4 && Raiz->info4.status_apagar == MANTER) {
+            if (*info_anterior != NULL) {
+                if ((*info_anterior)->status == Raiz->info4.status) {
+                    (*info_anterior)->bloco_fim = Raiz->info4.bloco_fim;
+                    (*info_anterior)->intervalo = (*info_anterior)->bloco_fim - (*info_anterior)->bloco_inicio + 1;
+                    Raiz->info4.status_apagar = APAGAR;
+                    agrupamento_realizado = 1;
+                }
+            }
+            *info_anterior = &Raiz->info4;
+        }
+        agrupamento_realizado |= agrupar_infos(Raiz->dir, info_anterior);
     }
 
-
-    return desalocou; 
-
+    return agrupamento_realizado; // Retorna 1 se agrupamentos foram realizados, 0 caso contrário
 }
+
+
+
+
+
+//A função de apagar, percorrerá toda a árvore e removerá todas infos com a TAG apagar, mantendo a alternancia dos blocos da árvore. 
+
+
+
+
+
+
+
+
+void removerInfosApagar(Arv45Mem **Raiz) {
+    if (*Raiz != NULL) {
+        // Percorrer as subárvores
+        removerInfosApagar(&(*Raiz)->esq);
+        removerInfosApagar(&(*Raiz)->cent1);
+        removerInfosApagar(&(*Raiz)->cent2);
+        removerInfosApagar(&(*Raiz)->cent3);
+        removerInfosApagar(&(*Raiz)->dir);
+
+        // Processar as informações do nó atual
+        for (int i = 1; i <= (*Raiz)->N_infos; i++) {
+            Inf45 *info = NULL;
+
+            // Selecionar a Info correta
+            if (i == 1) info = &(*Raiz)->info1;
+            else if (i == 2) info = &(*Raiz)->info2;
+            else if (i == 3) info = &(*Raiz)->info3;
+            else if (i == 4) info = &(*Raiz)->info4;
+
+            // Verificar se a Info possui a TAG APAGAR
+            if (info != NULL && info->status_apagar == APAGAR) {
+                // Ajustar os ponteiros das subárvores associados a essa Info
+                if (i == 1) {
+                    (*Raiz)->esq = (*Raiz)->cent1;
+                    (*Raiz)->cent1 = (*Raiz)->cent2;
+                    (*Raiz)->cent2 = (*Raiz)->cent3;
+                    (*Raiz)->cent3 = (*Raiz)->dir;
+                    (*Raiz)->dir = NULL;
+                } else if (i == 2) {
+                    (*Raiz)->cent1 = (*Raiz)->cent2;
+                    (*Raiz)->cent2 = (*Raiz)->cent3;
+                    (*Raiz)->cent3 = (*Raiz)->dir;
+                    (*Raiz)->dir = NULL;
+                } else if (i == 3) {
+                    (*Raiz)->cent2 = (*Raiz)->cent3;
+                    (*Raiz)->cent3 = (*Raiz)->dir;
+                    (*Raiz)->dir = NULL;
+                } else if (i == 4) {
+                    (*Raiz)->cent3 = (*Raiz)->dir;
+                    (*Raiz)->dir = NULL;
+                }
+
+                // Deslocar as outras Infos para preencher o espaço
+                for (int j = i; j < (*Raiz)->N_infos; j++) {
+                    if (j == 1) (*Raiz)->info1 = (*Raiz)->info2;
+                    if (j == 2) (*Raiz)->info2 = (*Raiz)->info3;
+                    if (j == 3) (*Raiz)->info3 = (*Raiz)->info4;
+                }
+                (*Raiz)->N_infos--; // Reduz o número de infos no nó
+                i--; // Reprocessar o índice atual, pois as infos foram deslocadas
+            }
+        }
+
+        // Se o nó ficar vazio, liberar a memória e ajustar o ponteiro
+        if ((*Raiz)->N_infos == 0) {
+            // Mover filhos do nó vazio para o pai
+            if ((*Raiz)->esq) {
+                Arv45Mem *subarvore = (*Raiz)->esq;
+                **Raiz = *subarvore; // Substitui o nó pelo filho
+                free(subarvore);
+            } else {
+                free(*Raiz);
+                *Raiz = NULL;
+            }
+        }
+    }
+}
+
+void balancearArvore45(Arv45Mem **Raiz) {
+    if (*Raiz != NULL) {
+        // Balancear as subárvores primeiro
+        balancearArvore45(&(*Raiz)->esq);
+        balancearArvore45(&(*Raiz)->cent1);
+        balancearArvore45(&(*Raiz)->cent2);
+        balancearArvore45(&(*Raiz)->cent3);
+        balancearArvore45(&(*Raiz)->dir);
+
+        // Verificar o equilíbrio do nó atual
+        if ((*Raiz)->N_infos < 2) {
+            Arv45Mem *pai = NULL;
+            Arv45Mem **irmao_maior = NULL;
+
+            // Identificar o pai e o irmão com mais informações
+            encontrarPaiEIrmao(*Raiz, &pai, &irmao_maior);
+
+            if (irmao_maior != NULL && (*irmao_maior)->N_infos > 2) {
+                // Caso 1: Redistribuir com o irmão
+                redistribuirInfos(*Raiz, *irmao_maior, pai);
+            } else if (pai != NULL) {
+                // Caso 2: Fusão com o irmão
+                fundirNos(*Raiz, pai, irmao_maior);
+            }
+        }
+    }
+}
+
+
+void encontrarPaiEIrmao(Arv45Mem *no_atual, Arv45Mem **pai, Arv45Mem ***irmao_maior) {
+    if (*pai != NULL) {
+        for (int i = 1; i <= (*pai)->N_infos + 1; i++) {
+            Arv45Mem **filho = NULL;
+
+            if (i == 1) filho = &(*pai)->esq;
+            else if (i == 2) filho = &(*pai)->cent1;
+            else if (i == 3) filho = &(*pai)->cent2;
+            else if (i == 4) filho = &(*pai)->cent3;
+            else if (i == 5) filho = &(*pai)->dir;
+
+            if (*filho == no_atual) {
+                // Identifica o irmão com mais informações
+                if (i > 1 && (*pai)->N_infos >= i - 1) {
+                    Arv45Mem *irmao_esquerda = (i == 2) ? (*pai)->esq : *(&(*pai)->cent1 + i - 2);
+                    if (irmao_esquerda && irmao_esquerda->N_infos > 2) {
+                        *irmao_maior = &irmao_esquerda;
+                    }
+                }
+                if (i <= (*pai)->N_infos) {
+                    Arv45Mem *irmao_direita = *(&(*pai)->cent1 + i - 1);
+                    if (irmao_direita && irmao_direita->N_infos > 2) {
+                        *irmao_maior = &irmao_direita;
+                    }
+                }
+                return;
+            }
+        }
+    }
+}
+
+
+void redistribuirInfos(Arv45Mem *no, Arv45Mem *irmao, Arv45Mem *pai) {
+    if (irmao->N_infos > 2) {
+        if (no->N_infos < 2) {
+            // Redistribuição simples
+            if (irmao->info1.bloco_inicio < no->info1.bloco_inicio) {
+                // Redistribuir do irmão esquerdo
+                no->info1 = pai->info1;
+                pai->info1 = irmao->info1;
+
+                // Ajustar ponteiros do irmão
+                irmao->info1 = irmao->info2;
+                irmao->info2 = irmao->info3;
+                irmao->N_infos--;
+            } else {
+                // Redistribuir do irmão direito
+                no->info1 = pai->info2;
+                pai->info2 = irmao->info1;
+
+                // Ajustar ponteiros do irmão
+                irmao->info1 = irmao->info2;
+                irmao->info2 = irmao->info3;
+                irmao->N_infos--;
+            }
+            no->N_infos++;
+        }
+    }
+}
+
+
+
+void fundirNos(Arv45Mem *no, Arv45Mem *pai, Arv45Mem **irmao) {
+    if (*irmao != NULL) {
+        // Fusão entre o nó e o irmão
+        if ((*irmao)->info1.bloco_inicio < no->info1.bloco_inicio) {
+            // Fusão com irmão esquerdo
+            (*irmao)->info2 = pai->info1;
+            (*irmao)->info3 = no->info1;
+
+            // Ajustar ponteiros
+            (*irmao)->N_infos += no->N_infos + 1;
+
+            // Liberar o nó
+            free(no);
+        } else {
+            // Fusão com irmão direito
+            no->info2 = pai->info1;
+            no->info3 = (*irmao)->info1;
+
+            // Ajustar ponteiros
+            no->N_infos += (*irmao)->N_infos + 1;
+
+            // Liberar o irmão
+            free(*irmao);
+        }
+    }
+}
+
 
