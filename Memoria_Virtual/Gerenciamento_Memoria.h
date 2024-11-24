@@ -24,14 +24,14 @@ typedef struct Arvore45_Memoria{
 // Protótipos dos Menus
 
 void menu_principal(); //Menu principal
-void sobre();//O sobre
+void sobre();//O sobre, o criador do trabalho basicamente. kkkk
 void funcionalidades(); //O submenu das Funcionalidades. 
 
 //Protótipo das funções de exibição de status
 
 void situacao_construcao_memoria(int situacao); //informa o status final da operação de construção da memória
-void situacao_alocacao_memoria(int situacao);
-void situacao_desalocacao_memoria(int situacao); 
+void situacao_alocacao_memoria(int situacao); //Informa o status final da operação da "alocação" da memória
+void situacao_desalocacao_memoria(int situacao); //Informa o status final da operação de "liberação" da memória
 
 
 
@@ -39,13 +39,25 @@ void situacao_desalocacao_memoria(int situacao);
 
 //Protótipos das Funções da Árvore 4-5
 
-Arv45Mem *criar_no_Arv45(Inf45 Info, Arv45Mem *Filho_esq, Arv45Mem *Filho_cen1); 
-int ehfolha(Arv45Mem *no); 
-Arv45Mem *Adiciona_chave(Arv45Mem *no_atual, Inf45 Info, Arv45Mem *Maior_No); 
-Arv45Mem *QuebraNo(Arv45Mem **No, Inf45 Info, Inf45 *Promove, Arv45Mem *Filho); 
-Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai, int *situacao); 
+Arv45Mem *criar_no_Arv45(Inf45 Info, Arv45Mem *Filho_esq, Arv45Mem *Filho_cen1); //função base de  criação do Nó
+int ehfolha(Arv45Mem *no); //Função auxiliar que identifica que estou em uma folha
+Arv45Mem *Adiciona_chave(Arv45Mem *no_atual, Inf45 Info, Arv45Mem *Maior_No); //função que adiciona novas infos em um nó que não está totalmente cheio 
+Arv45Mem *QuebraNo(Arv45Mem **No, Inf45 Info, Inf45 *Promove, Arv45Mem *Filho); //Função que Quebra o Nó e separa as infos, promovendo o meio
+Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai, int *situacao); //Função base de inserção na árvore 4-5
+void imprimirArvore45(Arv45Mem *raiz); //Função base de impressão
+void imprimirInfo(Inf45 info); //imprime informações detalhadas de cada Info
 
-void imprimirArvore45(Arv45Mem *raiz); //Função de impressão
+//Funções de remoção da 4-5
+
+void removerInfosApagar(Arv45Mem **Raiz); //Função de remoção
+
+void balancearArvore45(Arv45Mem **Raiz); //balaceamento da árvore 4-5
+void encontrarPaiEIrmao(Arv45Mem *no_atual, Arv45Mem **pai, Arv45Mem ***irmao_maior); 
+void redistribuirInfos(Arv45Mem *no, Arv45Mem *irmao, Arv45Mem *pai); 
+void fundirNos(Arv45Mem *no, Arv45Mem *pai, Arv45Mem **irmao); 
+
+
+
 
 
 
@@ -57,8 +69,8 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz); //Função auxiliar que cuida d
 int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos); //Função de alocação de memória
 int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos); //Função de desalocação de memória
 Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int localizacao_info, int *situacao); //Função que atualiza os blocos, seja inserção ou remoção;
-int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao); 
-
+int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao); //função que passa um "pente-fino" garantindo que não tenha espaços em branco entre os intervalos após as operações. 
+int agrupar_infos(Arv45Mem *Raiz, Inf45 **info_anterior); 
 
 
 

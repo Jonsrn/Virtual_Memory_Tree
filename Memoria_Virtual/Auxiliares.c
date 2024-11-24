@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include "Gerenciamento_Memoria.h"
 
+
+//Essa função monta o dataset na árvore, para que as operações possam ser realizadas
 void construir_memoria_do_sistema(Arv45Mem **Raiz) {
     int situacao; 
     if (*Raiz == NULL) {
@@ -65,22 +67,25 @@ void construir_memoria_do_sistema(Arv45Mem **Raiz) {
     situacao_construcao_memoria(situacao); 
 }
 
-
+//Função auxiliar que cuida das operações de "alocação", ou seja, transferir blocos do status LIVRE, pra OCUPADO
 void alocar_memoria_para_programa(Arv45Mem **Raiz){
     int situacao;  
     if(*Raiz != NULL){
         int qtd_blocos, operacao;
         printf("Essa é a alocação de memória do sistema\n"); 
         printf("Digite quantos blocos de memória (1mb) que o programa precisa: ");
+
+        //validar, para não inserir valores negativos ou 0
         scanf("%d", &qtd_blocos); 
-        Inf45 *bloco_anterior;
+        Inf45 *bloco_anterior, *Info_anterior;
         bloco_anterior = NULL;
+        Info_anterior = NULL; 
         situacao = 1; //deu certo
 
 
 
        operacao = alocar_memoria((*Raiz), qtd_blocos); 
-       if(operacao == 2 || situacao == 3 || situacao == 4){
+       if(operacao == 2 || operacao == 3 || operacao == 4){
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 1); // A alocação não usou o bloco final
        }else if(operacao == 5){
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 2); //A alocação usou o bloco final
@@ -96,19 +101,35 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
        if(operacao == 0){
             //Não há espaço disponivel suficiente na memória
             situacao = 4;
-       }else if(operacao == 1){
-          //A quantidade de memoria foi reservada, mas como não há blocos ocupados, um precisa ser criado 
-          // chama a função de criação do Nó, coleta o Último bloco da Info1, e adiciona 1 pra ser o inicio, e depois adiciona o intervalo
+       }else if((*Raiz)->N_infos == 1 && (*Raiz)->esq == NULL){
+          //A quantidade de memoria foi reservada, mas como não há mais blocos ocupados, um precisa ser criado 
+          // chama a função de criação do Nó, coleta o Último bloco da Info1, e o novo passa a ser o inicio, e depois adiciona o intervalo
+         
+          Inf45 Informacao_inserir; 
+          int operacao_insercao; 
+          Informacao_inserir.bloco_inicio = 0; 
+          Informacao_inserir.bloco_fim = qtd_blocos - 1; 
+          Informacao_inserir.intervalo = qtd_blocos; 
+          Informacao_inserir.status = OCUPADO; 
+          Informacao_inserir.status_apagar = MANTER; 
+          insereArv45(Raiz, Informacao_inserir, NULL, NULL, &operacao_insercao); 
           
-
-          if(operacao != 1){
+          if(operacao_insercao != 1){
               //A operação falhou, pois houve falha na criação de um novo bloco
               situacao = 3;
           }
-
           //o retorno com sucesso
-       }else if(operacao == 3){
-          //3 significa que tudo deu certo, mas um bloco precisa ser apagado
+       }else if(operacao == 4){
+          //4 significa que tudo deu certo, mas um bloco precisa ser apagado
+
+          operacao = agrupar_infos(*Raiz, &Info_anterior); //o agrupamento vai juntar blocos que ficarão adjacentes e sinalizará mais um bloco pra remoção
+
+          if(operacao == 1){
+             printf("Um agrupamento foi realizado\n"); 
+          }
+
+          removerInfosApagar(Raiz); 
+
 
           
 
@@ -131,7 +152,7 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
     situacao_alocacao_memoria(situacao); 
 }
 
-
+//Função auxiliar que cuida das operações de "desalocação", ou seja, transferir blocos do status OCUPADO, pra LIVRE
 void desalocar_memoria_sistema(Arv45Mem **Raiz){
    int situacao; 
 
@@ -139,13 +160,16 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
        int qtd_blocos, operacao; 
        printf("Essa é a liberação de memória do sistema\n"); 
        printf("Digite quantos blocos de memória (1mb) que deseja liberar: ");
+
+       //Validar pra não inserir valores negativos ou 0. 
        scanf("%d", &qtd_blocos); 
-       Inf45 *bloco_anterior;  
+       Inf45 *bloco_anterior, *Info_anterior;  
        bloco_anterior = NULL; 
+       Info_anterior = NULL; 
        situacao = 1; 
 
        operacao = desalocar_memoria((*Raiz), qtd_blocos); 
-       if(operacao == 2 || situacao == 3 || situacao == 4){
+       if(operacao == 2 || operacao == 3 || operacao == 4){
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 1); // A alocação não usou o bloco final
        }else if(operacao == 5){ 
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 2); //A alocação usou o bloco final
@@ -155,20 +179,36 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
        if(operacao == 0){
             //Não há memória suficiente pra ser liberada, não faço mais nada
             situacao = 4;
-       }else if(operacao == 1){
+       }else if((*Raiz)->N_infos == 1 && (*Raiz)->esq == NULL){
           //A quantidade de memoria foi reservada, mas como não há blocos livres, um precisa ser criado 
           // chama a função de criação do Nó, coleta o Último bloco da Info1, e adiciona 1 pra ser o inicio, e depois adiciona o intervalo
           
+          Inf45 Informacao_inserir; 
+          int operacao_insercao; 
+          Informacao_inserir.bloco_inicio = 0; 
+          Informacao_inserir.bloco_fim = qtd_blocos - 1; 
+          Informacao_inserir.intervalo = qtd_blocos; 
+          Informacao_inserir.status = LIVRE; 
+          Informacao_inserir.status_apagar = MANTER; 
 
-          if(operacao != 1){
+          insereArv45(Raiz, Informacao_inserir, NULL, NULL, &operacao_insercao); 
+          
+          if(operacao_insercao != 1){
               //A operação falhou, pois houve falha na criação de um novo bloco
               situacao = 3;
           }
 
           //o retorno com sucesso
-       }else if(operacao == 3){
+       }else if(operacao == 4){
           //3 significa que tudo deu certo, mas um bloco precisa ser apagado
+          
+          operacao = agrupar_infos(*Raiz, &Info_anterior);
 
+          if(operacao == 1){
+             printf("Um agrupamento foi realizado\n"); 
+          }
+
+          removerInfosApagar(Raiz); 
           
 
           
