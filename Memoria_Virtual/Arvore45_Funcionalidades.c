@@ -235,12 +235,17 @@ Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai,
 
 
 void imprimirInfo(Inf45 info) {
-    // Imprime informações apenas se forem válidas
-    if (info.bloco_fim > info.bloco_inicio) {
+    if (info.status_apagar == APAGAR) {
+        printf("Status: APAGAR | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d\n",
+               info.bloco_inicio, info.bloco_fim,
+               info.bloco_fim - info.bloco_inicio);
+    } else if (info.bloco_fim >= info.bloco_inicio) { 
         printf("Status: %s | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d\n",
                info.status == LIVRE ? "LIVRE" : "OCUPADO",
                info.bloco_inicio, info.bloco_fim,
                info.bloco_fim - info.bloco_inicio);
+    } else {
+        printf("Informação inválida detectada: Início: %d, Fim: %d\n", info.bloco_inicio, info.bloco_fim);
     }
 }
 
@@ -281,34 +286,78 @@ void imprimirArvore45(Arv45Mem *raiz) {
     }
 }
 
+//Funções relacionadas a alocação e desalocação dos blocos. 
+int eh_ultimo(Arv45Mem *Raiz, int localizacao_info) {
+    int ultimo = 0;
 
-Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int localizacao_info) {
+    if (Raiz != NULL) {
+        // Verifica se o nó atual é o último (não tem filhos adicionais)
+        if (Raiz->dir == NULL && Raiz->cent3 == NULL && Raiz->cent2 == NULL && Raiz->cent1 == NULL) {
+            // Verifica se a Info atual é a última Info válida no nó
+            if (localizacao_info == Raiz->N_infos) {
+                ultimo = 1; // Confirma que é o último
+            }
+        }
+    }
+
+    return ultimo; // Retorna 1 se é o último, 0 caso contrário
+}
+
+
+
+
+Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int localizacao_info, int *situacao) {
     Inf45 *info = NULL;
 
     // Selecionar a Info correta com base na localização
-    if (localizacao_info == 1){ 
-        info = &Raiz->info1;
-    }else if (localizacao_info == 2){ 
-        info = &Raiz->info2;
-    }else if (localizacao_info == 3){ 
-        info = &Raiz->info3;
-    }else if (localizacao_info == 4){ 
-        info = &Raiz->info4;
-    }
+    if (localizacao_info == 1) info = &Raiz->info1;
+    else if (localizacao_info == 2) info = &Raiz->info2;
+    else if (localizacao_info == 3) info = &Raiz->info3;
+    else if (localizacao_info == 4) info = &Raiz->info4;
 
-    if (operacao == 1) {
-        // Operação de adicionar blocos
-        info->bloco_inicio -= qtd_blocos; // Recuar o início do bloco
-        info->intervalo += qtd_blocos;   // Aumentar o intervalo
-    } else if (operacao == 2) {
-        // Operação de subtrair blocos
-        info->bloco_fim -= qtd_blocos;   // Reduzir o tamanho do bloco
-        info->intervalo -= qtd_blocos;  // Reduzir o intervalo
+    if (info != NULL) {
+        // Verifica se o bloco é o último
+        if (eh_ultimo(Raiz, localizacao_info)) {
+            *situacao = 2; // Indica que estamos lidando com o último bloco
 
+            if (operacao == 2) {
+                // Se for o último bloco, avança o início e ajusta o intervalo
+                info->bloco_inicio += qtd_blocos;
+                info->intervalo = info->bloco_fim - info->bloco_inicio + 1;
+            } else if (operacao == 1) {
+                // Operação de adição no último bloco
+                info->bloco_inicio -= qtd_blocos;
+                info->intervalo += qtd_blocos;
+            }
+
+            // Log para depuração
+            printf("Último bloco ajustado: [%d, %d] (Intervalo: %d)\n",
+                   info->bloco_inicio, info->bloco_fim, info->intervalo);
+
+        } else {
+            *situacao = 1; // Situação convencional (não é o último bloco)
+
+            // Operação padrão de adição ou subtração
+            if (operacao == 1) {
+                info->bloco_inicio -= qtd_blocos; // Recuar o início do bloco
+                info->intervalo += qtd_blocos;   // Aumentar o intervalo
+            } else if (operacao == 2) {
+                info->bloco_fim -= qtd_blocos;   // Reduzir o tamanho do bloco
+                info->intervalo -= qtd_blocos;  // Reduzir o intervalo
+            }
+
+            // Log para depuração
+            printf("Bloco ajustado (não-último): [%d, %d] (Intervalo: %d)\n",
+                   info->bloco_inicio, info->bloco_fim, info->intervalo);
+        }
+    } else {
+        printf("Erro: Info não encontrada.\n");
     }
 
     return Raiz;
 }
+
+
 
 
 
@@ -319,7 +368,7 @@ int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
     //2 significa que deu certo, encontrei um bloco com espaço suficiente pra tomar parte de suas unidades e que eu já aloquei o espaço pra outro bloco, não há mais pendencia (quando tudo é resolvido no próprio Nó)
     //3 significa que deu certo, encontrei um bloco com espaço suficiente pra retirar seus blocos e que eu já aloquei o espaço pra outro bloco, mas esse bloco livre ficou vazio, ele precisa ser excluído. (Sem pendencia de manipulação, os blocos foram para o outro bloco do mesmo nó)
     //4 significa que deu certo, encontrei um bloco com espaço suficiente pra retirar seus blocos e que eu já aloquei o espaço pra outro bloco, mas esse bloco livre ficou vazio, ele precisa ser excluído. (Ficou pendencia de inserção desses blocos)
-
+    //5 significa que é o ultimo bloco, precisa ser reajustado de maneira diferente
     if (Raiz != NULL) {
         // Tentar alocar nos filhos à esquerda primeiro
         alocou = alocar_memoria(Raiz->esq, qtd_blocos);
@@ -343,9 +392,17 @@ int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
                 // Verificar se a Info é LIVRE e tem espaço suficiente
                 if (info->status == LIVRE && info->intervalo >= qtd_blocos) {
                     if (qtd_blocos < info->intervalo) {
+                        int situacao; 
+                        situacao = 0; 
                         // Caso: Bloco LIVRE tem mais espaço do que o necessário
-                        Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i); // Reduz o intervalo do bloco LIVRE
-                        alocou = 2; // Alocação resolvida no próprio nó
+                        Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco LIVRE
+                        if(situacao == 1){
+                            //1 significa que é normal, n está no ultimo bloco
+                            alocou = 2; 
+                        }else if(situacao == 2){
+                            //é o ultimo bloco
+                            alocou = 5; 
+                        }
                         break;
                     } else {
                         // Caso: Bloco LIVRE tem exatamente o espaço necessário
@@ -372,31 +429,170 @@ int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
             }
         }
 
-        // Resolver pendências de inserção (casos alocou == 2 ou == 4)
-        if (alocou == 2 || alocou == 4) {
-            for (int i = 1; i <= Raiz->N_infos; i++) {
-                Inf45 *info = NULL;
-
-                // Selecionar a Info correta
-                if (i == 1) info = &Raiz->info1;
-                else if (i == 2) info = &Raiz->info2;
-                else if (i == 3) info = &Raiz->info3;
-                else if (i == 4) info = &Raiz->info4;
-
-                if (info->status == OCUPADO) {
-                    // Verificar se este bloco é adjacente ao LIVRE reduzido
-
-                    // Expandir o bloco OCUPADO
-                    Raiz = atualizar_bloco(Raiz, qtd_blocos, 1, i); // Operação 1 = somar blocos
-
-                    if (alocou == 4) {
-                        alocou = 3; // Resolvido completamente, mas o bloco original deve ser apagado
-                    }
-                    break;
-                }
-            }
-        }
     }
 
     return alocou; // Retorna o status da alocação
 }
+
+
+int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
+    int ajustes_realizados = 0; // Indica se ajustes foram feitos
+
+    if (Raiz != NULL) {
+        if (opcao == 1) {
+            // Processa a subárvore esquerda primeiro (ordem padrão)
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->esq, bloco_anterior, opcao);
+
+            // Processa Info1 e a subárvore cent1
+            if (Raiz->info1.status_apagar == MANTER) {
+                if (*bloco_anterior != NULL) {
+                    // Verifica se os blocos estão alinhados
+                    if ((*bloco_anterior)->bloco_fim + 1 != Raiz->info1.bloco_inicio) {
+                        // Ajusta o início do bloco atual para alinhar
+                        Raiz->info1.bloco_inicio = (*bloco_anterior)->bloco_fim + 1;
+                        ajustes_realizados = 1; // Ajuste foi feito
+                    }
+                }
+                // Atualiza o intervalo do bloco atual
+                int novo_intervalo = Raiz->info1.bloco_fim - Raiz->info1.bloco_inicio + 1;
+                if (novo_intervalo != Raiz->info1.intervalo) {
+                    Raiz->info1.intervalo = novo_intervalo;
+                    ajustes_realizados = 1; // Ajuste foi feito
+                }
+                // Atualiza o bloco anterior para o atual
+                *bloco_anterior = &Raiz->info1;
+            }
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->cent1, bloco_anterior, opcao);
+
+            // Processa Info2 e as subárvores cent2 (se existir)
+            if (Raiz->N_infos >= 2 && Raiz->info2.status_apagar == MANTER) {
+                if (*bloco_anterior != NULL) {
+                    if ((*bloco_anterior)->bloco_fim + 1 != Raiz->info2.bloco_inicio) {
+                        Raiz->info2.bloco_inicio = (*bloco_anterior)->bloco_fim + 1;
+                        ajustes_realizados = 1; // Ajuste foi feito
+                    }
+                }
+                int novo_intervalo = Raiz->info2.bloco_fim - Raiz->info2.bloco_inicio + 1;
+                if (novo_intervalo != Raiz->info2.intervalo) {
+                    Raiz->info2.intervalo = novo_intervalo;
+                    ajustes_realizados = 1;
+                }
+                *bloco_anterior = &Raiz->info2;
+            }
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->cent2, bloco_anterior, opcao);
+
+            // Processa Info3 e as subárvores cent3
+            if (Raiz->N_infos >= 3 && Raiz->info3.status_apagar == MANTER) {
+                if (*bloco_anterior != NULL) {
+                    if ((*bloco_anterior)->bloco_fim + 1 != Raiz->info3.bloco_inicio) {
+                        Raiz->info3.bloco_inicio = (*bloco_anterior)->bloco_fim + 1;
+                        ajustes_realizados = 1; // Ajuste foi feito
+                    }
+                }
+                int novo_intervalo = Raiz->info3.bloco_fim - Raiz->info3.bloco_inicio + 1;
+                if (novo_intervalo != Raiz->info3.intervalo) {
+                    Raiz->info3.intervalo = novo_intervalo;
+                    ajustes_realizados = 1;
+                }
+                *bloco_anterior = &Raiz->info3;
+            }
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->cent3, bloco_anterior, opcao);
+
+            // Processa Info4 e a subárvore direita
+            if (Raiz->N_infos >= 4 && Raiz->info4.status_apagar == MANTER) {
+                if (*bloco_anterior != NULL) {
+                    if ((*bloco_anterior)->bloco_fim + 1 != Raiz->info4.bloco_inicio) {
+                        Raiz->info4.bloco_inicio = (*bloco_anterior)->bloco_fim + 1;
+                        ajustes_realizados = 1; // Ajuste foi feito
+                    }
+                }
+                int novo_intervalo = Raiz->info4.bloco_fim - Raiz->info4.bloco_inicio + 1;
+                if (novo_intervalo != Raiz->info4.intervalo) {
+                    Raiz->info4.intervalo = novo_intervalo;
+                    ajustes_realizados = 1;
+                }
+                *bloco_anterior = &Raiz->info4;
+            }
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->dir, bloco_anterior, opcao);
+
+        } else if (opcao == 2) {
+            // Processa a subárvore direita primeiro (ordem invertida)
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->dir, bloco_anterior, opcao);
+
+            // Processa Info4 e a subárvore cent3 (se existir)
+            if (Raiz->N_infos >= 4 && Raiz->info4.status_apagar == MANTER) {
+                if (*bloco_anterior != NULL) {
+                    if ((*bloco_anterior)->bloco_inicio - 1 != Raiz->info4.bloco_fim) {
+                        Raiz->info4.bloco_fim = (*bloco_anterior)->bloco_inicio - 1;
+                        ajustes_realizados = 1; // Ajuste foi feito
+                    }
+                }
+                int novo_intervalo = Raiz->info4.bloco_fim - Raiz->info4.bloco_inicio + 1;
+                if (novo_intervalo != Raiz->info4.intervalo) {
+                    Raiz->info4.intervalo = novo_intervalo;
+                    ajustes_realizados = 1;
+                }
+                *bloco_anterior = &Raiz->info4;
+            }
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->cent3, bloco_anterior, opcao);
+
+            // Processa Info3 e as subárvores cent2
+            if (Raiz->N_infos >= 3 && Raiz->info3.status_apagar == MANTER) {
+                if (*bloco_anterior != NULL) {
+                    if ((*bloco_anterior)->bloco_inicio - 1 != Raiz->info3.bloco_fim) {
+                        Raiz->info3.bloco_fim = (*bloco_anterior)->bloco_inicio - 1;
+                        ajustes_realizados = 1;
+                    }
+                }
+                int novo_intervalo = Raiz->info3.bloco_fim - Raiz->info3.bloco_inicio + 1;
+                if (novo_intervalo != Raiz->info3.intervalo) {
+                    Raiz->info3.intervalo = novo_intervalo;
+                    ajustes_realizados = 1;
+                }
+                *bloco_anterior = &Raiz->info3;
+            }
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->cent2, bloco_anterior, opcao);
+
+            // Processa Info2 e as subárvores cent1
+            if (Raiz->N_infos >= 2 && Raiz->info2.status_apagar == MANTER) {
+                if (*bloco_anterior != NULL) {
+                    if ((*bloco_anterior)->bloco_inicio - 1 != Raiz->info2.bloco_fim) {
+                        Raiz->info2.bloco_fim = (*bloco_anterior)->bloco_inicio - 1;
+                        ajustes_realizados = 1;
+                    }
+                }
+                int novo_intervalo = Raiz->info2.bloco_fim - Raiz->info2.bloco_inicio + 1;
+                if (novo_intervalo != Raiz->info2.intervalo) {
+                    Raiz->info2.intervalo = novo_intervalo;
+                    ajustes_realizados = 1;
+                }
+                *bloco_anterior = &Raiz->info2;
+            }
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->cent1, bloco_anterior, opcao);
+
+            // Processa Info1 e a subárvore esquerda
+            if (Raiz->info1.status_apagar == MANTER) {
+                if (*bloco_anterior != NULL) {
+                    if ((*bloco_anterior)->bloco_inicio - 1 != Raiz->info1.bloco_fim) {
+                        Raiz->info1.bloco_fim = (*bloco_anterior)->bloco_inicio - 1;
+                        ajustes_realizados = 1;
+                    }
+                }
+                int novo_intervalo = Raiz->info1.bloco_fim - Raiz->info1.bloco_inicio + 1;
+                if (novo_intervalo != Raiz->info1.intervalo) {
+                    Raiz->info1.intervalo = novo_intervalo;
+                    ajustes_realizados = 1;
+                }
+                *bloco_anterior = &Raiz->info1;
+            }
+            ajustes_realizados |= ajustando_os_intervalos(Raiz->esq, bloco_anterior, opcao);
+        }
+    }
+
+    return ajustes_realizados; // Retorna 1 se ajustes foram realizados, 0 caso contrário
+}
+
+
+
+
+

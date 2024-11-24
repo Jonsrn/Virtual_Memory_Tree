@@ -71,12 +71,26 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
         printf("Essa é a alocação de memória do sistema\n"); 
         printf("Digite quantos blocos de memória (1mb) que o programa precisa: ");
         scanf("%d", &qtd_blocos); 
+        Inf45 *bloco_anterior;
+
+        bloco_anterior = NULL; 
+        
 
         situacao = 1; //deu certo
 
 
 
        operacao = alocar_memoria((*Raiz), qtd_blocos); 
+       if(operacao == 2 || situacao == 3 || situacao == 4){
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1); 
+       }else if(operacao == 5){
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2); 
+           
+       }
+       
+       
+      
+       
 
        
 
