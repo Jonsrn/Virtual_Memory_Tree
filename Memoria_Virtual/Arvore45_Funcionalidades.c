@@ -359,82 +359,6 @@ Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int loca
 
 
 
-
-
-int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
-    int alocou = 0; // Status inicial: não encontrou bloco livre.
-    //0, significa que não encontrou um bloco livre.
-    // 1  significa que encontrei um bloco com espaço suficiente pra tomar parte de suas unidades (mas ficou pendencia, se não encontrei um bloco adjacente) (*** deve ser tratado externamente, com a criação de um novo nó)
-    //2 significa que deu certo, encontrei um bloco com espaço suficiente pra tomar parte de suas unidades e que eu já aloquei o espaço pra outro bloco, não há mais pendencia (quando tudo é resolvido no próprio Nó)
-    //3 significa que deu certo, encontrei um bloco com espaço suficiente pra retirar seus blocos e que eu já aloquei o espaço pra outro bloco, mas esse bloco livre ficou vazio, ele precisa ser excluído. (Sem pendencia de manipulação, os blocos foram para o outro bloco do mesmo nó)
-    //4 significa que deu certo, encontrei um bloco com espaço suficiente pra retirar seus blocos e que eu já aloquei o espaço pra outro bloco, mas esse bloco livre ficou vazio, ele precisa ser excluído. (Ficou pendencia de inserção desses blocos)
-    //5 significa que é o ultimo bloco, precisa ser reajustado de maneira diferente
-    if (Raiz != NULL) {
-        // Tentar alocar nos filhos à esquerda primeiro
-        alocou = alocar_memoria(Raiz->esq, qtd_blocos);
-
-        if (alocou == 0) {
-            // Percorrer as Infos do nó atual
-            for (int i = 1; i <= Raiz->N_infos; i++) {
-                Inf45 *info = NULL;
-
-                // Selecionar a Info correta
-                if (i == 1){
-                     info = &Raiz->info1;
-                }else if (i == 2){
-                     info = &Raiz->info2;
-                }else if (i == 3){
-                     info = &Raiz->info3;
-                }else if (i == 4){
-                     info = &Raiz->info4;
-                }     
-
-                // Verificar se a Info é LIVRE e tem espaço suficiente
-                if (info->status == LIVRE && info->intervalo >= qtd_blocos) {
-                    if (qtd_blocos < info->intervalo) {
-                        int situacao; 
-                        situacao = 0; 
-                        // Caso: Bloco LIVRE tem mais espaço do que o necessário
-                        Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco LIVRE
-                        if(situacao == 1){
-                            //1 significa que é normal, n está no ultimo bloco
-                            alocou = 2; 
-                        }else if(situacao == 2){
-                            //é o ultimo bloco
-                            alocou = 5; 
-                        }
-                        break;
-                    } else {
-                        // Caso: Bloco LIVRE tem exatamente o espaço necessário
-                        info->status_apagar = APAGAR; // Marcar o bloco para exclusão
-                        alocou = 4; // Pendência de exclusão
-                        break;
-                    }
-                }
-            }
-
-            if (alocou == 0) {
-                // Tentar alocar nos filhos centrais e à direita
-                alocou = alocar_memoria(Raiz->cent1, qtd_blocos);
-                if (alocou == 0 && Raiz->cent2 != NULL){ 
-                    alocou = alocar_memoria(Raiz->cent2, qtd_blocos);
-                }    
-                if (alocou == 0 && Raiz->cent3 != NULL){
-                     alocou = alocar_memoria(Raiz->cent3, qtd_blocos);
-                }     
-                
-                if (alocou == 0){
-                     alocou = alocar_memoria(Raiz->dir, qtd_blocos);
-                }     
-            }
-        }
-
-    }
-
-    return alocou; // Retorna o status da alocação
-}
-
-
 int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
     int ajustes_realizados = 0; // Indica se ajustes foram feitos
 
@@ -593,6 +517,153 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
 }
 
 
+int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
+    int alocou = 0; // Status inicial: não encontrou bloco livre.
+    //0, significa que não encontrou um bloco livre.
+    // 1  significa que encontrei um bloco com espaço suficiente pra tomar parte de suas unidades (mas ficou pendencia, se não encontrei um bloco adjacente) (*** deve ser tratado externamente, com a criação de um novo nó)
+    //2 significa que deu certo, encontrei um bloco com espaço suficiente pra tomar parte de suas unidades e que eu já aloquei o espaço pra outro bloco, não há mais pendencia (quando tudo é resolvido no próprio Nó)
+    //3 significa que deu certo, encontrei um bloco com espaço suficiente pra retirar seus blocos e que eu já aloquei o espaço pra outro bloco, mas esse bloco livre ficou vazio, ele precisa ser excluído. (Sem pendencia de manipulação, os blocos foram para o outro bloco do mesmo nó)
+    //4 significa que deu certo, encontrei um bloco com espaço suficiente pra retirar seus blocos e que eu já aloquei o espaço pra outro bloco, mas esse bloco livre ficou vazio, ele precisa ser excluído. (Ficou pendencia de inserção desses blocos)
+    //5 significa que é o ultimo bloco, precisa ser reajustado de maneira diferente
+    if (Raiz != NULL) {
+        // Tentar alocar nos filhos à esquerda primeiro
+        alocou = alocar_memoria(Raiz->esq, qtd_blocos);
+
+        if (alocou == 0) {
+            // Percorrer as Infos do nó atual
+            for (int i = 1; i <= Raiz->N_infos; i++) {
+                Inf45 *info = NULL;
+
+                // Selecionar a Info correta
+                if (i == 1){
+                     info = &Raiz->info1;
+                }else if (i == 2){
+                     info = &Raiz->info2;
+                }else if (i == 3){
+                     info = &Raiz->info3;
+                }else if (i == 4){
+                     info = &Raiz->info4;
+                }     
+
+                // Verificar se a Info é LIVRE e tem espaço suficiente
+                if (info->status == LIVRE && info->intervalo >= qtd_blocos) {
+                    if (qtd_blocos < info->intervalo) {
+                        int situacao; 
+                        situacao = 0; 
+                        // Caso: Bloco LIVRE tem mais espaço do que o necessário
+                        Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco LIVRE
+                        if(situacao == 1){
+                            //1 significa que é normal, n está no ultimo bloco
+                            alocou = 2; 
+                        }else if(situacao == 2){
+                            //é o ultimo bloco
+                            alocou = 5; 
+                        }
+                        break;
+                    } else {
+                        // Caso: Bloco LIVRE tem exatamente o espaço necessário
+                        info->status_apagar = APAGAR; // Marcar o bloco para exclusão
+                        alocou = 4; // Pendência de exclusão
+                        break;
+                    }
+                }
+            }
+
+            if (alocou == 0) {
+                // Tentar alocar nos filhos centrais e à direita
+                alocou = alocar_memoria(Raiz->cent1, qtd_blocos);
+                if (alocou == 0 && Raiz->cent2 != NULL){ 
+                    alocou = alocar_memoria(Raiz->cent2, qtd_blocos);
+                }    
+                if (alocou == 0 && Raiz->cent3 != NULL){
+                     alocou = alocar_memoria(Raiz->cent3, qtd_blocos);
+                }     
+                
+                if (alocou == 0){
+                     alocou = alocar_memoria(Raiz->dir, qtd_blocos);
+                }     
+            }
+        }
+
+    }
+
+    return alocou; // Retorna o status da alocação
+}
 
 
+int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos){
+    int desalocou = 0;
+    
+
+    if(Raiz != NULL){
+         // Tentar alocar nos filhos à esquerda primeiro
+        desalocou = desalocar_memoria(Raiz->esq, qtd_blocos);
+
+        if (desalocou == 0) {
+            // Percorrer as Infos do nó atual
+            for (int i = 1; i <= Raiz->N_infos; i++) {
+                Inf45 *info = NULL;
+
+                // Selecionar a Info correta
+                if (i == 1){
+                     info = &Raiz->info1;
+                }else if (i == 2){
+                     info = &Raiz->info2;
+                }else if (i == 3){
+                     info = &Raiz->info3;
+                }else if (i == 4){
+                     info = &Raiz->info4;
+                }     
+
+                // Verificar se a Info é OCUPADA e tem espaço suficiente para ser liberada
+                if (info->status == OCUPADO && info->intervalo >= qtd_blocos) {
+                    if (qtd_blocos < info->intervalo) {
+                        int situacao; 
+                        situacao = 0; 
+                        // Caso: Bloco OCUPADO tem mais espaço do que o necessário
+                        Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco OCUPADO
+                        if(situacao == 1){
+                            //1 significa que é normal, n está no ultimo bloco
+                            desalocou = 2; 
+                        }else if(situacao == 2){
+                            //é o ultimo bloco
+                            desalocou = 5; 
+                        }
+                        break;
+                    } else {
+                        // Caso: Bloco OCUPADO tem exatamente o espaço necessário
+                        info->status_apagar = APAGAR; // Marcar o bloco para exclusão
+                        desalocou = 4; // Pendência de exclusão
+                        break;
+                    }
+                }
+            }
+
+            if (desalocou == 0) {
+                // Tentar alocar nos filhos centrais e à direita
+                desalocou = desalocar_memoria(Raiz->cent1, qtd_blocos);
+                if (desalocou == 0 && Raiz->cent2 != NULL){ 
+                    desalocou = desalocar_memoria(Raiz->cent2, qtd_blocos);
+                }    
+                if (desalocou == 0 && Raiz->cent3 != NULL){
+                     desalocou = desalocar_memoria(Raiz->cent3, qtd_blocos);
+                }     
+                
+                if (desalocou == 0){
+                     desalocou = desalocar_memoria(Raiz->dir, qtd_blocos);
+                }     
+            }
+        }
+        
+
+
+
+
+
+    }
+
+
+    return desalocou; 
+
+}
 
