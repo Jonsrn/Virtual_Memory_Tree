@@ -15,7 +15,7 @@ void situacao_construcao_memoria(int situacao){
 
 void situacao_alocacao_memoria(int situacao){
     if(situacao == 0){
-        printf("A operação falhou porque não há memória alocada\n"); 
+        printf("A operação falhou porque não há dataset alocado na árvore\n"); 
     }
     if(situacao == 1){
         printf("Alocação da memória feita com sucesso\n"); 
@@ -30,5 +30,14 @@ void situacao_alocacao_memoria(int situacao){
         printf("A operação falhou, pois não há espaço disponivel suficiente na memória\n"); 
 
     }
-
 }
+
+void situacao_desalocacao_memoria(int situacao){
+    if(situacao == 0){
+       printf("A operação falhou porque não há dataset alocado na árvore\n");  
+    }
+    if(situacao == 1){
+        printf("Desalocação da memória feita com sucesso\n"); 
+    }
+
+} 
