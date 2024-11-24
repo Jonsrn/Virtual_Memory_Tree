@@ -29,8 +29,9 @@ void funcionalidades(); //O submenu das Funcionalidades.
 
 //Protótipo das funções de exibição de status
 
-void situacao_construcao_memoria(int situacao); 
+void situacao_construcao_memoria(int situacao); //informa o status final da operação de construção da memória
 void situacao_alocacao_memoria(int situacao);
+void situacao_desalocacao_memoria(int situacao); 
 
 
 
@@ -52,7 +53,9 @@ void imprimirArvore45(Arv45Mem *raiz); //Função de impressão
 
 void construir_memoria_do_sistema(Arv45Mem **Raiz); //Função que monta o dataset
 void alocar_memoria_para_programa(Arv45Mem **Raiz); //Função auxiliar que cuida de alocar memória para uma "aplicação", se tiver espaço disponivel
+void desalocar_memoria_sistema(Arv45Mem **Raiz); //Função auxiliar que cuida de liberar a memória
 int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos); //Função de alocação de memória
+int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos); //Função de desalocação de memória
 Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int localizacao_info, int *situacao); //Função que atualiza os blocos, seja inserção ou remoção;
 int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao); 
 

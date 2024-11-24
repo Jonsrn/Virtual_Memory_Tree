@@ -19,6 +19,7 @@ void funcionalidades(){
     printf("Bem vindo ao Menu de Funcionalidades\n");
     printf("[1]-Alocar Espaço na memória para uma aplicação\n"); 
     printf("[2]-Liberar Espaço Alocado na Memória\n"); 
+    printf("[3]-Imprimir Dataset\n"); 
     printf("[0]-Sair\n"); 
 }
 
