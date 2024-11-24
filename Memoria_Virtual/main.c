@@ -34,9 +34,13 @@ int main(){
                              alocar_memoria_para_programa(&Memoria);  
                              break; 
                         case 2: 
-                             imprimirArvore45(Memoria); 
                              //Liberar Memória
+                             desalocar_memoria_sistema(&Memoria); 
                              break; 
+                        case 3: 
+                             imprimirArvore45(Memoria); 
+                             break; 
+                                   
                         default: 
                            printf("Opção Inválida, tente novamente\n");  
                     }
@@ -58,3 +62,5 @@ int main(){
 
     return 0; 
 }
+
+
