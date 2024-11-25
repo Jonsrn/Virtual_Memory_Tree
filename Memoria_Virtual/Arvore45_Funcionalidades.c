@@ -236,11 +236,6 @@ Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai,
 
 //Função que imprime detalhadamente as informações de cada INFO de cada Nó
 void imprimirInfo(Inf45 info) {
-    if (info.status_apagar == APAGAR) {
-        printf("Status: APAGAR | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d\n",
-               info.bloco_inicio, info.bloco_fim,
-               info.bloco_fim - info.bloco_inicio);
-    } else 
     if (info.bloco_fim >= info.bloco_inicio && info.status_apagar == MANTER) { 
         printf("Status: %s | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d\n",
                info.status == LIVRE ? "LIVRE" : "OCUPADO",
@@ -335,9 +330,6 @@ Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int loca
                 info->intervalo += qtd_blocos;
             }
 
-            // Log para depuração
-            printf("Último bloco ajustado: [%d, %d] (Intervalo: %d)\n",
-                   info->bloco_inicio, info->bloco_fim, info->intervalo);
 
         } else {
             *situacao = 1; // Situação convencional (não é o último bloco)
@@ -351,12 +343,7 @@ Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int loca
                 info->intervalo -= qtd_blocos;  // Reduzir o intervalo
             }
 
-            // Log para depuração
-            printf("Bloco ajustado (não-último): [%d, %d] (Intervalo: %d)\n",
-                   info->bloco_inicio, info->bloco_fim, info->intervalo);
         }
-    } else {
-        printf("Erro: Info não encontrada.\n");
     }
 
     return Raiz;
@@ -469,23 +456,34 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
                         ajustes_realizados = 1; // Ajuste foi feito
                     }
                 }
+                
                 int novo_intervalo = Raiz->info4.bloco_fim - Raiz->info4.bloco_inicio + 1;
                 if (novo_intervalo != Raiz->info4.intervalo) {
                     Raiz->info4.intervalo = novo_intervalo;
                     ajustes_realizados = 1;
                 }
                 *bloco_anterior = &Raiz->info4;
-            }else if(Raiz->N_infos >= 4 && Raiz->info4.status_apagar == APAGAR && eh_ultimo(Raiz, 4))
+            }
             ajustes_realizados |= ajustando_os_intervalos(Raiz->cent3, bloco_anterior, opcao);
 
             // Processa Info3 e as subárvores cent2
             if (Raiz->N_infos >= 3 && Raiz->info3.status_apagar == MANTER) {
+                
                 if (*bloco_anterior != NULL) {
                     if ((*bloco_anterior)->bloco_inicio - 1 != Raiz->info3.bloco_fim) {
                         Raiz->info3.bloco_fim = (*bloco_anterior)->bloco_inicio - 1;
                         ajustes_realizados = 1;
+                        
                     }
                 }
+                
+                // Se a próxima Info (info4) está marcada como APAGAR e é o último bloco
+                if (Raiz->N_infos >= 4 && Raiz->info4.status_apagar == APAGAR && eh_ultimo(Raiz, 4)) {
+                    Raiz->info3.bloco_fim = Raiz->info3.tam_total; // Atualiza o fim do penúltimo bloco
+                    ajustes_realizados = 1;
+                   
+                }
+
                 int novo_intervalo = Raiz->info3.bloco_fim - Raiz->info3.bloco_inicio + 1;
                 if (novo_intervalo != Raiz->info3.intervalo) {
                     Raiz->info3.intervalo = novo_intervalo;
@@ -493,6 +491,7 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
                 }
                 *bloco_anterior = &Raiz->info3;
             }
+            
             ajustes_realizados |= ajustando_os_intervalos(Raiz->cent2, bloco_anterior, opcao);
 
             // Processa Info2 e as subárvores cent1
@@ -503,6 +502,12 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
                         ajustes_realizados = 1;
                     }
                 }
+                if (Raiz->N_infos >= 3 && Raiz->info3.status_apagar == APAGAR && eh_ultimo(Raiz, 3)) {
+                    Raiz->info2.bloco_fim = Raiz->info2.tam_total; // Atualiza o fim do penúltimo bloco
+                    ajustes_realizados = 1;
+                   
+                }
+
                 int novo_intervalo = Raiz->info2.bloco_fim - Raiz->info2.bloco_inicio + 1;
                 if (novo_intervalo != Raiz->info2.intervalo) {
                     Raiz->info2.intervalo = novo_intervalo;
@@ -519,6 +524,11 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
                         Raiz->info1.bloco_fim = (*bloco_anterior)->bloco_inicio - 1;
                         ajustes_realizados = 1;
                     }
+                }
+                if (Raiz->N_infos >= 2 && Raiz->info2.status_apagar == APAGAR && eh_ultimo(Raiz, 2)) {
+                    Raiz->info1.bloco_fim = Raiz->info1.tam_total; // Atualiza o fim do penúltimo bloco
+                    ajustes_realizados = 1;
+                   
                 }
                 int novo_intervalo = Raiz->info1.bloco_fim - Raiz->info1.bloco_inicio + 1;
                 if (novo_intervalo != Raiz->info1.intervalo) {
@@ -577,14 +587,22 @@ int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos) {
                             alocou = 2; 
                         }else if(situacao == 2){
                             //é o ultimo bloco
-                            alocou = 5; 
+                            alocou = 6; 
                         }
                         break;
                     } else {
                         // Caso: Bloco LIVRE tem exatamente o espaço necessário
                         Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco LIVRE
                         info->status_apagar = APAGAR; // Marcar o bloco para exclusão
-                        alocou = 4; // Pendência de exclusão
+                        
+                        if(situacao == 1){
+                            //1 significa que é normal, n está no ultimo bloco
+                            alocou = 3; //3 significa que preciso de todo o bloco, mas não sou o ultimo
+                        }else if(situacao == 2){
+                            //é o ultimo bloco
+                            alocou = 5; //5 
+                        }
+                        
                         break;
                     }
                 }
@@ -648,14 +666,21 @@ int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos){
                             desalocou = 2; 
                         }else if(situacao == 2){
                             //é o ultimo bloco
-                            desalocou = 5; 
+                            desalocou = 6; 
                         }
                         break;
                     } else {
-                        // Caso: Bloco OCUPADO tem exatamente o espaço necessário
+                        // Caso: Bloco OCUPADO tem exatamente o espaço necessário 
+
                         Raiz = atualizar_bloco(Raiz, qtd_blocos, 2, i, &situacao); // Reduz o intervalo do bloco OCUPADO
                         info->status_apagar = APAGAR; // Marcar o bloco para exclusão
-                        desalocou = 4; // Pendência de exclusão
+                        if(situacao == 1){
+                            //1 significa que é normal, n está no ultimo bloco
+                            desalocou = 3; 
+                        }else if(situacao == 2){
+                            //é o ultimo bloco
+                            desalocou = 5; 
+                        }
                         break;
                     }
                 }
