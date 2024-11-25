@@ -162,9 +162,18 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
              
              if(situacao_atual == 1){
                 //liberamos a árvore antiga e a árvore nova se torna a arvore padrão. 
-                
-                printf("Arvore nova: \n"); 
-                imprimirArvore45(Nova_Raiz); 
+
+                liberarArvore45(Raiz); 
+
+                if(*Raiz == NULL){
+                    //a raiz é nula, podemos atribuir a nova árvore 
+                    
+                    *Raiz = Nova_Raiz; 
+
+                }else{
+                    //A liberação da árvore antiga falhou
+                    situacao = 4; 
+                }
 
 
 
@@ -291,9 +300,20 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
              
              if(situacao_atual == 1){
                 //liberamos a árvore antiga e a árvore nova se torna a arvore padrão. 
+
+                liberarArvore45(Raiz); 
+
+                if(*Raiz == NULL){
+                    //a raiz é nula, podemos atribuir a nova árvore 
+                    
+                    *Raiz = Nova_Raiz; 
+
+                }else{
+                    //A liberação da árvore antiga falhou
+                    situacao = 4; 
+                }
                 
-                printf("Arvore nova: \n"); 
-                imprimirArvore45(Nova_Raiz); 
+               
 
 
 
@@ -327,6 +347,10 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
 
 
 
+   }
+
+
+
    }else{
       //Não há dataset montado
       situacao = 0; 
@@ -334,10 +358,8 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
 
 
    situacao_desalocacao_memoria(situacao); 
-
-
-
-}
+   
+ 
 
 }
 
