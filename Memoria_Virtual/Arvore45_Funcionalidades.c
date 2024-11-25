@@ -240,11 +240,12 @@ void imprimirInfo(Inf45 info) {
         printf("Status: APAGAR | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d\n",
                info.bloco_inicio, info.bloco_fim,
                info.bloco_fim - info.bloco_inicio);
-    } else if (info.bloco_fim >= info.bloco_inicio) { 
-        printf("Status: %s | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d| Situacao: %s \n",
+    } else 
+    if (info.bloco_fim >= info.bloco_inicio && info.status_apagar == MANTER) { 
+        printf("Status: %s | Bloco Início: %d | Bloco Fim: %d | Intervalo: %d\n",
                info.status == LIVRE ? "LIVRE" : "OCUPADO",
                info.bloco_inicio, info.bloco_fim,
-               info.bloco_fim - info.bloco_inicio, info.status_apagar == MANTER ? "MANTER" : "APAGAR");
+               info.bloco_fim - info.bloco_inicio);
     } else {
         printf("Informação inválida detectada: Início: %d, Fim: %d\n", info.bloco_inicio, info.bloco_fim);
     }
@@ -474,7 +475,7 @@ int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao) {
                     ajustes_realizados = 1;
                 }
                 *bloco_anterior = &Raiz->info4;
-            }
+            }else if(Raiz->N_infos >= 4 && Raiz->info4.status_apagar == APAGAR && eh_ultimo(Raiz, 4))
             ajustes_realizados |= ajustando_os_intervalos(Raiz->cent3, bloco_anterior, opcao);
 
             // Processa Info3 e as subárvores cent2
@@ -758,10 +759,134 @@ int agrupar_infos(Arv45Mem *Raiz, Inf45 **info_anterior) {
 }
 
 
+//Função que cuida de percorrer e fazer uma cópia de todas as infos da árvore, desconsiderando os que serão excluídos
+int percorrer_recuperar_Infos(Arv45Mem *Raiz, Inf45 ***vetor_recuperado, int *numero_infos) {
+    int operacao = 1; // 1 significa que a operação deu certo
+
+    if (Raiz != NULL) {
+        // Percorrer a subárvore esquerda
+        operacao = percorrer_recuperar_Infos(Raiz->esq, vetor_recuperado, numero_infos);
+
+        // Adicionar Info1 ao vetor se estiver com a TAG MANTER
+        if (operacao == 1 && Raiz->info1.status_apagar == MANTER) {
+            Inf45 **temp = (Inf45 **)realloc(*vetor_recuperado, (*numero_infos + 1) * sizeof(Inf45 *));
+            if (temp == NULL) {
+                operacao = 0; // Falha na realocação
+            } else {
+                *vetor_recuperado = temp;
+                Inf45 *nova_info = (Inf45 *)malloc(sizeof(Inf45));
+                if (nova_info == NULL) {
+                    operacao = 0; // Falha na alocação
+                } else {
+                    *nova_info = Raiz->info1; // Copia os dados
+                    (*vetor_recuperado)[*numero_infos] = nova_info;
+                    (*numero_infos)++;
+                }
+            }
+        }
+
+        // Percorrer a subárvore cent1
+        if (operacao == 1) {
+            operacao = percorrer_recuperar_Infos(Raiz->cent1, vetor_recuperado, numero_infos);
+        }
+
+        // Adicionar Info2 ao vetor se existir e estiver com a TAG MANTER
+        if (operacao == 1 && Raiz->N_infos >= 2 && Raiz->info2.status_apagar == MANTER) {
+            Inf45 **temp = (Inf45 **)realloc(*vetor_recuperado, (*numero_infos + 1) * sizeof(Inf45 *));
+            if (temp == NULL) {
+                operacao = 0;
+            } else {
+                *vetor_recuperado = temp;
+                Inf45 *nova_info = (Inf45 *)malloc(sizeof(Inf45));
+                if (nova_info == NULL) {
+                    operacao = 0;
+                } else {
+                    *nova_info = Raiz->info2; // Copia os dados
+                    (*vetor_recuperado)[*numero_infos] = nova_info;
+                    (*numero_infos)++;
+                }
+            }
+        }
+
+        // Percorrer a subárvore cent2
+        if (operacao == 1) {
+            operacao = percorrer_recuperar_Infos(Raiz->cent2, vetor_recuperado, numero_infos);
+        }
+
+        // Adicionar Info3 ao vetor se existir e estiver com a TAG MANTER
+        if (operacao == 1 && Raiz->N_infos >= 3 && Raiz->info3.status_apagar == MANTER) {
+            Inf45 **temp = (Inf45 **)realloc(*vetor_recuperado, (*numero_infos + 1) * sizeof(Inf45 *));
+            if (temp == NULL) {
+                operacao = 0;
+            } else {
+                *vetor_recuperado = temp;
+                Inf45 *nova_info = (Inf45 *)malloc(sizeof(Inf45));
+                if (nova_info == NULL) {
+                    operacao = 0;
+                } else {
+                    *nova_info = Raiz->info3; // Copia os dados
+                    (*vetor_recuperado)[*numero_infos] = nova_info;
+                    (*numero_infos)++;
+                }
+            }
+        }
+
+        // Percorrer a subárvore cent3
+        if (operacao == 1) {
+            operacao = percorrer_recuperar_Infos(Raiz->cent3, vetor_recuperado, numero_infos);
+        }
+
+        // Adicionar Info4 ao vetor se existir e estiver com a TAG MANTER
+        if (operacao == 1 && Raiz->N_infos >= 4 && Raiz->info4.status_apagar == MANTER) {
+            Inf45 **temp = (Inf45 **)realloc(*vetor_recuperado, (*numero_infos + 1) * sizeof(Inf45 *));
+            if (temp == NULL) {
+                operacao = 0;
+            } else {
+                *vetor_recuperado = temp;
+                Inf45 *nova_info = (Inf45 *)malloc(sizeof(Inf45));
+                if (nova_info == NULL) {
+                    operacao = 0;
+                } else {
+                    *nova_info = Raiz->info4; // Copia os dados
+                    (*vetor_recuperado)[*numero_infos] = nova_info;
+                    (*numero_infos)++;
+                }
+            }
+        }
+
+        // Percorrer a subárvore direita
+        if (operacao == 1) {
+            operacao = percorrer_recuperar_Infos(Raiz->dir, vetor_recuperado, numero_infos);
+        }
+    }
+
+    return operacao; // Retorna o status da operação
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 //A função de apagar, percorrerá toda a árvore e removerá todas infos com a TAG apagar, mantendo a alternancia dos blocos da árvore. 
+
 
 
 
@@ -831,11 +956,12 @@ void removerInfosApagar(Arv45Mem **Raiz) {
                 **Raiz = *subarvore; // Substitui o nó pelo filho
                 free(subarvore);
             } else {
-                free(*Raiz);
-                *Raiz = NULL;
+                //free(*Raiz);
+                //*Raiz = NULL;
             }
         }
     }
+    balancearArvore45(Raiz); 
 }
 
 void balancearArvore45(Arv45Mem **Raiz) {
@@ -955,5 +1081,6 @@ void fundirNos(Arv45Mem *no, Arv45Mem *pai, Arv45Mem **irmao) {
         }
     }
 }
+
 
 
