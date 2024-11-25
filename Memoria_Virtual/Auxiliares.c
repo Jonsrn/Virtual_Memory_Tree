@@ -67,20 +67,24 @@ void construir_memoria_do_sistema(Arv45Mem **Raiz) {
     situacao_construcao_memoria(situacao); 
 }
 
+
+
 //Função auxiliar que cuida das operações de "alocação", ou seja, transferir blocos do status LIVRE, pra OCUPADO
 void alocar_memoria_para_programa(Arv45Mem **Raiz){
     int situacao;  
     if(*Raiz != NULL){
-        int qtd_blocos, operacao;
+        int qtd_blocos, operacao, numero_infos;
         printf("Essa é a alocação de memória do sistema\n"); 
         printf("Digite quantos blocos de memória (1mb) que o programa precisa: ");
 
         //validar, para não inserir valores negativos ou 0
         scanf("%d", &qtd_blocos); 
-        Inf45 *bloco_anterior, *Info_anterior;
+        Inf45 *bloco_anterior, *Info_anterior, **vetor_recuperado;
         bloco_anterior = NULL;
         Info_anterior = NULL; 
+        vetor_recuperado = NULL;
         situacao = 1; //deu certo
+        
 
 
 
@@ -128,19 +132,66 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
              printf("Um agrupamento foi realizado\n"); 
           }
 
-          removerInfosApagar(Raiz); 
-
-
-          
+          numero_infos = 0; 
 
           
 
-          //aqui chama a função que vai excluir o Nó. 
+          operacao = percorrer_recuperar_Infos(*Raiz, &vetor_recuperado, &numero_infos); 
 
-          if(operacao != 1){
-               //houve falha na exclusão do Nó
-               situacao = 2;
+           printf("Arvore original: \n"); 
+               imprimirArvore45(*Raiz); 
+
+          if(vetor_recuperado != NULL){
+             Inf45 Nova_insercao;
+             Arv45Mem *Nova_Raiz; 
+             Nova_Raiz = NULL; 
+             int situacao_atual = 1; 
+
+             for(int i = 0; i < numero_infos; i++){
+                Nova_insercao = *(vetor_recuperado[i]); 
+
+                insereArv45(&Nova_Raiz, Nova_insercao, NULL, NULL, &situacao_atual); 
+                if(situacao_atual != 1){
+                    break; 
+                    //para tudo
+                }
+
+
+             }
+            
+             
+             if(situacao_atual == 1){
+                //liberamos a árvore antiga e a árvore nova se torna a arvore padrão. 
+                
+                printf("Arvore nova: \n"); 
+                imprimirArvore45(Nova_Raiz); 
+
+
+
+             }else{
+                situacao = 3; //Falhou na construção da nova árvore
+             }  
+
+
+
+
+          }else{
+             //houve falha na reconstrução dos Nós
+               situacao = 2;          
           }
+          
+          
+          
+          
+        
+
+          
+
+          
+
+          
+
+        
        }
 
 
@@ -157,16 +208,18 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
    int situacao; 
 
    if(*Raiz != NULL){
-       int qtd_blocos, operacao; 
+       int qtd_blocos, operacao, numero_infos; 
        printf("Essa é a liberação de memória do sistema\n"); 
        printf("Digite quantos blocos de memória (1mb) que deseja liberar: ");
 
        //Validar pra não inserir valores negativos ou 0. 
        scanf("%d", &qtd_blocos); 
-       Inf45 *bloco_anterior, *Info_anterior;  
+       Inf45 *bloco_anterior, *Info_anterior, **vetor_recuperado;  
        bloco_anterior = NULL; 
        Info_anterior = NULL; 
+       vetor_recuperado = NULL;
        situacao = 1; 
+       numero_infos = 0;
 
        operacao = desalocar_memoria((*Raiz), qtd_blocos); 
        if(operacao == 2 || operacao == 3 || operacao == 4){
@@ -200,7 +253,7 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
 
           //o retorno com sucesso
        }else if(operacao == 4){
-          //3 significa que tudo deu certo, mas um bloco precisa ser apagado
+          //4 significa que tudo deu certo, mas um bloco precisa ser apagado
           
           operacao = agrupar_infos(*Raiz, &Info_anterior);
 
@@ -208,7 +261,45 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
              printf("Um agrupamento foi realizado\n"); 
           }
 
-          removerInfosApagar(Raiz); 
+          percorrer_recuperar_Infos(*Raiz, &vetor_recuperado, &numero_infos); 
+          
+
+          
+          printf("Arvore original: \n"); 
+               imprimirArvore45(*Raiz); 
+          
+          if(vetor_recuperado != NULL){
+             Inf45 Nova_insercao;
+             Arv45Mem *Nova_Raiz; 
+             Nova_Raiz = NULL; 
+             int situacao_atual = 1; 
+
+             for(int i = 0; i < numero_infos; i++){
+                Nova_insercao = *(vetor_recuperado[i]); 
+
+                insereArv45(&Nova_Raiz, Nova_insercao, NULL, NULL, &situacao_atual); 
+                if(situacao_atual != 1){
+                    break; 
+                    //para tudo
+                }
+
+
+             }
+             
+
+            
+             
+             if(situacao_atual == 1){
+                //liberamos a árvore antiga e a árvore nova se torna a arvore padrão. 
+                
+                printf("Arvore nova: \n"); 
+                imprimirArvore45(Nova_Raiz); 
+
+
+
+             }else{
+                situacao = 3; //Falhou na construção da nova árvore
+             }  
           
 
           
@@ -247,3 +338,7 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
 
 
 }
+
+}
+
+

@@ -46,8 +46,13 @@ Arv45Mem *QuebraNo(Arv45Mem **No, Inf45 Info, Inf45 *Promove, Arv45Mem *Filho); 
 Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai, int *situacao); //Função base de inserção na árvore 4-5
 void imprimirArvore45(Arv45Mem *raiz); //Função base de impressão
 void imprimirInfo(Inf45 info); //imprime informações detalhadas de cada Info
+int percorrer_recuperar_Infos(Arv45Mem *Raiz, Inf45 ***vetor_recuperado, int *numero_infos); //Essa função percorre a árvore original, e faz uma cópia, excluindo as INFOS com a TAG APAGAR
+
 
 //Funções de remoção da 4-5
+
+
+
 
 void removerInfosApagar(Arv45Mem **Raiz); //Função de remoção
 
@@ -55,6 +60,8 @@ void balancearArvore45(Arv45Mem **Raiz); //balaceamento da árvore 4-5
 void encontrarPaiEIrmao(Arv45Mem *no_atual, Arv45Mem **pai, Arv45Mem ***irmao_maior); 
 void redistribuirInfos(Arv45Mem *no, Arv45Mem *irmao, Arv45Mem *pai); 
 void fundirNos(Arv45Mem *no, Arv45Mem *pai, Arv45Mem **irmao); 
+
+
 
 
 
@@ -71,7 +78,6 @@ int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos); //Função de desalocaç�
 Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int localizacao_info, int *situacao); //Função que atualiza os blocos, seja inserção ou remoção;
 int ajustando_os_intervalos(Arv45Mem *Raiz, Inf45 **bloco_anterior, int opcao); //função que passa um "pente-fino" garantindo que não tenha espaços em branco entre os intervalos após as operações. 
 int agrupar_infos(Arv45Mem *Raiz, Inf45 **info_anterior); 
-
 
 
 
