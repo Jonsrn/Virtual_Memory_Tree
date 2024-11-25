@@ -17,6 +17,7 @@ void construir_memoria_do_sistema(Arv45Mem **Raiz) {
         Informacao.status = LIVRE;
         Informacao.status_apagar = MANTER; 
         Informacao.bloco_inicio = 0;
+        Informacao.tam_total = tamanho; 
 
         situacao = 1; //1 significa que deu certo
 
@@ -87,11 +88,12 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
         
 
 
-
+     
        operacao = alocar_memoria((*Raiz), qtd_blocos); 
        if(operacao == 2 || operacao == 3 || operacao == 4){
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 1); // A alocação não usou o bloco final
-       }else if(operacao == 5){
+       }else if(operacao == 5 || operacao == 6){
+        
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 2); //A alocação usou o bloco final
            
        }
@@ -104,6 +106,7 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
 
        if(operacao == 0){
             //Não há espaço disponivel suficiente na memória
+          
             situacao = 4;
        }else if((*Raiz)->N_infos == 1 && (*Raiz)->esq == NULL){
           //A quantidade de memoria foi reservada, mas como não há mais blocos ocupados, um precisa ser criado 
@@ -116,6 +119,7 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
           Informacao_inserir.intervalo = qtd_blocos; 
           Informacao_inserir.status = OCUPADO; 
           Informacao_inserir.status_apagar = MANTER; 
+          Informacao_inserir.tam_total = (*Raiz)->info1.tam_total; 
           insereArv45(Raiz, Informacao_inserir, NULL, NULL, &operacao_insercao); 
           
           if(operacao_insercao != 1){
@@ -123,23 +127,23 @@ void alocar_memoria_para_programa(Arv45Mem **Raiz){
               situacao = 3;
           }
           //o retorno com sucesso
-       }else if(operacao == 4){
+       }else if(operacao == 4 || operacao == 5 || operacao == 3){
           //4 significa que tudo deu certo, mas um bloco precisa ser apagado
+
+         
 
           operacao = agrupar_infos(*Raiz, &Info_anterior); //o agrupamento vai juntar blocos que ficarão adjacentes e sinalizará mais um bloco pra remoção
 
-          if(operacao == 1){
-             printf("Um agrupamento foi realizado\n"); 
-          }
+          
 
           numero_infos = 0; 
 
           
-
+          
           operacao = percorrer_recuperar_Infos(*Raiz, &vetor_recuperado, &numero_infos); 
 
-           printf("Arvore original: \n"); 
-               imprimirArvore45(*Raiz); 
+          
+          
 
           if(vetor_recuperado != NULL){
              Inf45 Nova_insercao;
@@ -231,9 +235,14 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
        numero_infos = 0;
 
        operacao = desalocar_memoria((*Raiz), qtd_blocos); 
+      
        if(operacao == 2 || operacao == 3 || operacao == 4){
+          
+          
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 1); // A alocação não usou o bloco final
-       }else if(operacao == 5){ 
+       }else if(operacao == 5 || operacao == 6){ 
+          
+          
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 2); //A alocação usou o bloco final
            
        }
@@ -252,6 +261,7 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
           Informacao_inserir.intervalo = qtd_blocos; 
           Informacao_inserir.status = LIVRE; 
           Informacao_inserir.status_apagar = MANTER; 
+          Informacao_inserir.tam_total = (*Raiz)->info1.tam_total; 
 
           insereArv45(Raiz, Informacao_inserir, NULL, NULL, &operacao_insercao); 
           
@@ -261,21 +271,21 @@ void desalocar_memoria_sistema(Arv45Mem **Raiz){
           }
 
           //o retorno com sucesso
-       }else if(operacao == 4){
+       }else if(operacao == 4 || operacao == 5 || operacao == 3){
           //4 significa que tudo deu certo, mas um bloco precisa ser apagado
+
+          
           
           operacao = agrupar_infos(*Raiz, &Info_anterior);
 
-          if(operacao == 1){
-             printf("Um agrupamento foi realizado\n"); 
-          }
-
+            
           percorrer_recuperar_Infos(*Raiz, &vetor_recuperado, &numero_infos); 
           
 
           
-          printf("Arvore original: \n"); 
-               imprimirArvore45(*Raiz); 
+          
+
+               
           
           if(vetor_recuperado != NULL){
              Inf45 Nova_insercao;
