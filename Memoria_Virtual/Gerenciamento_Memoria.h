@@ -47,19 +47,9 @@ Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai,
 void imprimirArvore45(Arv45Mem *raiz); //Função base de impressão
 void imprimirInfo(Inf45 info); //imprime informações detalhadas de cada Info
 int percorrer_recuperar_Infos(Arv45Mem *Raiz, Inf45 ***vetor_recuperado, int *numero_infos); //Essa função percorre a árvore original, e faz uma cópia, excluindo as INFOS com a TAG APAGAR
+void liberarArvore45(Arv45Mem **Raiz); //Libera a arvore 4-5
 
 
-//Funções de remoção da 4-5
-
-
-
-
-void removerInfosApagar(Arv45Mem **Raiz); //Função de remoção
-
-void balancearArvore45(Arv45Mem **Raiz); //balaceamento da árvore 4-5
-void encontrarPaiEIrmao(Arv45Mem *no_atual, Arv45Mem **pai, Arv45Mem ***irmao_maior); 
-void redistribuirInfos(Arv45Mem *no, Arv45Mem *irmao, Arv45Mem *pai); 
-void fundirNos(Arv45Mem *no, Arv45Mem *pai, Arv45Mem **irmao); 
 
 
 
