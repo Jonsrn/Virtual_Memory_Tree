@@ -49,7 +49,7 @@ void imprimirInfo(Inf45 info); //imprime informações detalhadas de cada Info
 int percorrer_recuperar_Infos(Arv45Mem *Raiz, Inf45 ***vetor_recuperado, int *numero_infos); //Essa função percorre a árvore original, e faz uma cópia, excluindo as INFOS com a TAG APAGAR
 void liberarArvore45(Arv45Mem **Raiz); //Libera a arvore 4-5
 int eh_ultimo(Arv45Mem *Raiz, int localizacao_info); //Função pra saber se estou no ultimo bloco
-
+int reconstruir_arvore_45(Arv45Mem **Raiz, int tamanho_vetor, Inf45 **vetor_recuperado); //Essa função modulariza operações de recriação da árvore e liberação da árvore antiga
 
 
 
@@ -62,7 +62,7 @@ int eh_ultimo(Arv45Mem *Raiz, int localizacao_info); //Função pra saber se est
 
 void construir_memoria_do_sistema(Arv45Mem **Raiz); //Função que monta o dataset
 void alocar_memoria_para_programa(Arv45Mem **Raiz); //Função auxiliar que cuida de alocar memória para uma "aplicação", se tiver espaço disponivel
-void desalocar_memoria_sistema(Arv45Mem **Raiz); //Função auxiliar que cuida de liberar a memória
+void desalocar_memoria_sistema(Arv45Mem **Raiz); //Função auxiliar que cuida de liberar a memória que está "alocada"
 int alocar_memoria(Arv45Mem *Raiz, int qtd_blocos); //Função de alocação de memória
 int desalocar_memoria(Arv45Mem *Raiz, int qtd_blocos); //Função de desalocação de memória
 Arv45Mem *atualizar_bloco(Arv45Mem *Raiz, int qtd_blocos, int operacao, int localizacao_info, int *situacao); //Função que atualiza os blocos, seja inserção ou remoção;
