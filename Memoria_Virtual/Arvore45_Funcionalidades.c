@@ -4,6 +4,8 @@
 #include "Gerenciamento_Memoria.h"
 
 
+//Funções de criação e Inserção na 4-5
+
 //Função de criação do Nó da 4-5
 Arv45Mem *criar_no_Arv45(Inf45 Info, Arv45Mem *Filho_esq, Arv45Mem *Filho_cen1){
     Arv45Mem *Novo_no; 
@@ -231,7 +233,7 @@ Arv45Mem *insereArv45(Arv45Mem **no, Inf45 Info, Inf45 *promove, Arv45Mem **Pai,
 
 
 
-
+//Funções de impressão na árvore 4-5
 
 
 //Função que imprime detalhadamente as informações de cada INFO de cada Nó
@@ -241,7 +243,7 @@ void imprimirInfo(Inf45 info) {
                info.status == LIVRE ? "LIVRE" : "OCUPADO",
                info.bloco_inicio, info.bloco_fim,
                info.bloco_fim - info.bloco_inicio);
-    } else {
+    }else {
         printf("Informação inválida detectada: Início: %d, Fim: %d\n", info.bloco_inicio, info.bloco_fim);
     }
 }
@@ -284,7 +286,8 @@ void imprimirArvore45(Arv45Mem *raiz) {
     }
 }
 
-//Funções relacionadas a alocação e desalocação dos blocos. 
+
+//Funções relacionadas a "alocação" e "desalocação" dos blocos. 
 
 //essa função serve pra saber se estou na ultima info da árvore
 int eh_ultimo(Arv45Mem *Raiz, int localizacao_info) {
@@ -909,3 +912,51 @@ void liberarArvore45(Arv45Mem **Raiz) {
 }
 
 
+//Funções auxiliares de melhoria de leitura de código. 
+
+//Essa função constrói uma nova árvore, com o vetor recuperado de Infos, e libera a árvore antiga, atribuindo a arvore nova ao antigo endereço
+
+int reconstruir_arvore_45(Arv45Mem **Raiz, int tamanho_vetor, Inf45 **vetor_recuperado){
+    int operacao = 0; //0 significa que não deu certo
+    if(*Raiz != NULL){
+        int situacao_atual = 1; 
+        Arv45Mem *Nova_Raiz; 
+        Nova_Raiz = NULL; 
+        Inf45 Nova_insercao; 
+        operacao = 1; //por enquanto, tratamos como uma operação que deu certo. 
+
+        for(int i = 0; i < tamanho_vetor; i++){
+           Nova_insercao = *(vetor_recuperado[i]);
+           
+           insereArv45(&Nova_Raiz, Nova_insercao, NULL, NULL, &situacao_atual); 
+
+           if(situacao_atual != 1){
+              //falhou na criação da nova árvore 
+              liberarArvore45(&Nova_Raiz); //Como falhou, é preciso liberar o que foi alocado
+              operacao = 2; //2 significa que falhou na criação da nova árvore
+              break;  
+           }           
+        
+        }
+
+        if(situacao_atual == 1){
+             //com a nova árvore criada com sucesso, podemos liberar a árvore antiga. 
+
+             liberarArvore45(Raiz); 
+
+             if(*Raiz == NULL){
+                //A árvore foi limpa com sucesso. 
+                // Com isso a gente pode atribuir a nova árvore
+
+                *Raiz = Nova_Raiz; 
+            }else{
+                //A liberação falhou
+
+                operacao = 3; //significa que a operação falhou na liberação da árvore
+            }
+
+        }
+    }
+
+    return operacao; 
+}
