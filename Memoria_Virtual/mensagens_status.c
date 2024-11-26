@@ -21,14 +21,22 @@ void situacao_alocacao_memoria(int situacao){
         printf("Alocação da memória feita com sucesso\n"); 
     }
     if(situacao == 2){
-        printf("A operação falhou, pois não foi possivel realizar a exclusão da Info desocupada\n"); 
+        printf("A operação falhou, porque houve falha na recuperação dos Nós\n");
     }
     if(situacao == 3){
-        printf("A operação falhou, pois houve falha na criação de um novo bloco\n"); 
+        printf("A operação falhou, porque houve falha na liberação da árvore antiga\n"); 
     }
     if(situacao == 4){
-        printf("A operação falhou, pois não há espaço disponivel suficiente na memória\n"); 
-
+        printf("A operação falhou, porque houve falha na reconstrução da árvore\n");
+    }
+    if(situacao == 5){
+        printf("A operação falhou porque a Raiz manipulada se tornou inválida\n"); 
+    }
+    if(situacao == 6){
+        printf("A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco\n");
+    }
+    if(situacao == 7){
+        printf("A operação falhou, porque não há espaço disponivel suficiente na memória\n");
     }
 }
 
@@ -38,6 +46,24 @@ void situacao_desalocacao_memoria(int situacao){
     }
     if(situacao == 1){
         printf("Desalocação da memória feita com sucesso\n"); 
+    }
+    if(situacao == 2){
+        printf("A operação falhou, porque houve falha na recuperação dos Nós\n");
+    }
+    if(situacao == 3){
+        printf("A operação falhou, porque houve falha na liberação da árvore antiga\n"); 
+    }
+    if(situacao == 4){
+        printf("A operação falhou, porque houve falha na reconstrução da árvore\n");
+    }
+    if(situacao == 5){
+        printf("A operação falhou porque a Raiz manipulada se tornou inválida\n"); 
+    }
+    if(situacao == 6){
+        printf("A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco\n");
+    }
+    if(situacao == 7){
+        printf("A operação falhou, porque não há espaço disponivel suficiente na memória\n");
     }
 
 } 
