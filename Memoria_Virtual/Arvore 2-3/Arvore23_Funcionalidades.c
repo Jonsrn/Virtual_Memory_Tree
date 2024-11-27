@@ -236,19 +236,11 @@ int eh_ultimo(Arv23Mem *Raiz_atual, Arv23Mem *Raiz_original, int localizacao_inf
             }
         }
 
-        // Prints para depuração
-        printf("Raiz_atual: %p | no_atual: %p | localizacao_info: %d | N_infos: %d\n",
-               (void *)Raiz_atual, (void *)no_atual, localizacao_info, Raiz_atual->N_infos);
 
         // Verifica se o nó atual é o nó mais à direita ou profundo e se a localização da Info é a última
         if (Raiz_atual == no_atual && localizacao_info == Raiz_atual->N_infos) {
             ultimo = 1; // É o último
-            printf("Confirmação: Último bloco na Info %d do nó mais à direita/profundo.\n", localizacao_info);
-        } else {
-            printf("Não é o último: Raiz_atual ou localização_info não correspondem.\n");
-        }
-    } else {
-        printf("Erro: Raiz_atual ou Raiz_original é NULL.\n");
+        } 
     }
 
     return ultimo; // Retorna 1 se é o último, 0 caso contrário
@@ -270,11 +262,10 @@ Arv23Mem *atualizar_bloco(Arv23Mem *Raiz, int qtd_blocos, int operacao, int loca
         // Verifica se o bloco é o último
         if (eh_ultimo(Raiz, Raiz_original, localizacao_info)) {
             *situacao = 2; // Indica que estamos lidando com o último bloco
-            printf("Cai no ultimo bloco\n"); 
-
+           
             if (operacao == 2) {
                 // Se for o último bloco, avança o início e ajusta o intervalo
-                printf("Avancei o inicio\n"); 
+             
                 info->bloco_inicio += qtd_blocos;
                 info->intervalo = info->bloco_fim - info->bloco_inicio + 1;
             } else if (operacao == 1) {
@@ -286,7 +277,6 @@ Arv23Mem *atualizar_bloco(Arv23Mem *Raiz, int qtd_blocos, int operacao, int loca
 
         } else {
             *situacao = 1; // Situação convencional (não é o último bloco)
-            printf("Não sou o ultimo bloco\n"); 
 
             // Operação padrão de adição ou subtração
             if (operacao == 1) {
@@ -383,9 +373,6 @@ int ajustando_os_intervalos(Arv23Mem *Raiz, Inf23 **bloco_anterior, int opcao, A
                 if (Raiz->N_infos == 2 && (Raiz->dir->info1.status_apagar) == APAGAR && eh_ultimo(Raiz->dir, Raiz_original, 1)) {
                     Raiz->info2.bloco_fim = Raiz->info2.tam_total; // Atualiza o fim do penúltimo bloco
                     ajustes_realizados = 1;
-                    printf("Intervalo: %d, bloco Final: %d\n", Raiz->info1.intervalo, Raiz->info1.bloco_fim); 
-                    printf("Cai na nova condição\n"); 
-                   
                 }
                 
 
@@ -402,8 +389,6 @@ int ajustando_os_intervalos(Arv23Mem *Raiz, Inf23 **bloco_anterior, int opcao, A
             // Processa Info1 e a subárvore esquerda
             if (Raiz->info1.status_apagar == MANTER) {
                 if (*bloco_anterior != NULL) {
-                    printf("Cai aqui 1\n");
-                    printf("Intervalo: %d, bloco final: %d\n", Raiz->info1.intervalo, Raiz->info1.bloco_fim); 
                     if ((*bloco_anterior)->bloco_inicio - 1 != Raiz->info1.bloco_fim) {
                         Raiz->info1.bloco_fim = (*bloco_anterior)->bloco_inicio - 1;
                         ajustes_realizados = 1;
@@ -414,8 +399,6 @@ int ajustando_os_intervalos(Arv23Mem *Raiz, Inf23 **bloco_anterior, int opcao, A
                     if (Raiz->N_infos >= 1 && (Raiz->cent->info1.status_apagar) == APAGAR && eh_ultimo(Raiz->cent, Raiz_original, 1)) {
                         Raiz->info1.bloco_fim = Raiz->info1.tam_total; // Atualiza o fim do penúltimo bloco
                         ajustes_realizados = 1;
-                        printf("Intervalo: %d, bloco Final: %d\n", Raiz->info1.intervalo, Raiz->info1.bloco_fim); 
-                        printf("Cai na nova condição consertada\n"); 
                     
                     }
                 }    
@@ -423,8 +406,6 @@ int ajustando_os_intervalos(Arv23Mem *Raiz, Inf23 **bloco_anterior, int opcao, A
                 if (Raiz->N_infos == 2 && Raiz->info2.status_apagar == APAGAR && eh_ultimo(Raiz, Raiz_original, 2)) {
                     Raiz->info1.bloco_fim = Raiz->info1.tam_total; // Atualiza o fim do penúltimo bloco
                     ajustes_realizados = 1;
-                    printf("Intervalo: %d, bloco Final: %d\n", Raiz->info1.intervalo, Raiz->info1.bloco_fim); 
-                    printf("Cai aqui 2\n"); 
                    
                 }
 
