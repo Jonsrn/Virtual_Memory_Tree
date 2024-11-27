@@ -131,14 +131,11 @@ void alocar_memoria_para_programa(Arv23Mem **Raiz){
       if(operacao == 0){
           //Não há espaço disponivel suficiente na memória
           situacao = 7; 
-       }else if(operacao == 2 || operacao == 3 || operacao == 4){
-           printf("Estou ajustando pela frente, operacao = %d\n", operacao);
-              
+       }else if(operacao == 2 || operacao == 3 || operacao == 4){              
 
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, (*Raiz)); // A alocação não usou o bloco final
        }else if(operacao == 5 || operacao == 6){ 
-           printf("Estou ajustando por trás\n"); 
-          
+                 
                    
            ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, (*Raiz)); //A alocação usou o bloco final    
 
