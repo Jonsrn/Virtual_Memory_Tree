@@ -369,11 +369,13 @@ int ajustando_os_intervalos(Arv23Mem *Raiz, Inf23 **bloco_anterior, int opcao, A
                         ajustes_realizados = 1;
                     }
                 }
-
-                if (Raiz->N_infos == 2 && (Raiz->dir->info1.status_apagar) == APAGAR && eh_ultimo(Raiz->dir, Raiz_original, 1)) {
-                    Raiz->info2.bloco_fim = Raiz->info2.tam_total; // Atualiza o fim do penúltimo bloco
-                    ajustes_realizados = 1;
-                }
+                
+                if(Raiz->dir != NULL){
+                    if (Raiz->N_infos == 2 && (Raiz->dir->info1.status_apagar) == APAGAR && eh_ultimo(Raiz->dir, Raiz_original, 1)) {
+                        Raiz->info2.bloco_fim = Raiz->info2.tam_total; // Atualiza o fim do penúltimo bloco
+                        ajustes_realizados = 1;
+                    }
+                }    
                 
 
                 int novo_intervalo = Raiz->info2.bloco_fim - Raiz->info2.bloco_inicio + 1;
