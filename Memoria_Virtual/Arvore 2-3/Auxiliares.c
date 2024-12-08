@@ -20,6 +20,7 @@ void construir_memoria_do_sistema(Arv23Mem **Raiz) {
             }else{
                 confirmacao = 0; 
                 printf("Por favor, digite um valor entre o intervalo mencionado, 1 a 4.\n"); 
+                while (getchar() != '\n'); // Limpa o buffer em caso de entrada inválida
             }  
  
 
@@ -36,22 +37,27 @@ void construir_memoria_do_sistema(Arv23Mem **Raiz) {
         while (Informacao.bloco_inicio < tamanho) {
             confirmacao = 0; 
             // Determinar o tamanho do próximo intervalo
-            do{
-                if (Informacao.status == LIVRE) {
-                    printf("Digite quantos blocos que a memória está livre: ");
-                } else {
-                    printf("Digite quantos blocos que a memória está ocupada: ");
-                }
-                scanf("%d", &Informacao.intervalo);
+            do {
+                        if (Informacao.status == LIVRE) {
+                            printf("Digite quantos blocos que a memória está livre: ");
+                        } else {
+                            printf("Digite quantos blocos que a memória está ocupada: ");
+                        }
 
-                if(Informacao.intervalo > 0){ //validação
-                    confirmacao = 1; 
-                }else{
-                    confirmacao = 0; 
-                    printf("Digite um valor positivo\n"); 
-                }
+                        // Verifica se a entrada é válida
+                        if (scanf("%d", &Informacao.intervalo) != 1) { // Se não for um número
+                            confirmacao = 0;
+                            printf("Entrada inválida! Digite um número positivo.\n");
 
-            }while(confirmacao == 0);     
+                            while (getchar() != '\n'); // Limpa o buffer
+                        } else if (Informacao.intervalo > 0) { // Se for um número positivo
+                            confirmacao = 1;
+                        } else { // Caso seja um número negativo ou zero
+                            confirmacao = 0;
+                            printf("Digite um valor positivo.\n");
+                        }
+
+                } while (confirmacao == 0);     
 
            
 
@@ -108,18 +114,23 @@ void alocar_memoria_para_programa(Arv23Mem **Raiz){
 
         printf("Essa é a alocação de memória do sistema\n"); 
         
-        do{
+        do {
             printf("Digite quantos blocos de memória (1mb) que o programa precisa: ");
-            scanf("%d", &qtd_blocos); 
 
-            if(qtd_blocos > 0){//validação
-                confirmacao = 1; 
-            }else{
-                confirmacao = 0; 
-                printf("Digite um valor positivo\n"); 
+            // Verifica se a entrada é válida
+            if (scanf("%d", &qtd_blocos) != 1) { // Se não conseguir ler um número
+                confirmacao = 0;
+                printf("Entrada inválida! Digite um número positivo.\n");
+
+                while (getchar() != '\n'); // Limpa o buffer
+            } else if (qtd_blocos > 0) { // Valida o número positivo
+                confirmacao = 1;
+            } else { // Caso o número seja negativo ou zero
+                confirmacao = 0;
+                printf("Digite um valor positivo.\n");
             }
 
-        }while(confirmacao == 0); 
+       } while (confirmacao == 0);
 
         qtd_blocos = qtd_blocos + 1;     
         
@@ -146,52 +157,30 @@ void alocar_memoria_para_programa(Arv23Mem **Raiz){
       
        
        if((*Raiz)->N_infos == 1 && (*Raiz)->esq == NULL && operacao != 0){
-          //A quantidade de memoria foi reservada, mas como não há mais blocos ocupados, um precisa ser criado 
-          // chama a função de criação do Nó, coleta o Último bloco da Info1, e o novo passa a ser o inicio, e depois adiciona o intervalo
+            //A quantidade de memoria foi reservada, mas como não há mais blocos ocupados, um precisa ser criado 
+            // chama a função de criação do Nó, coleta o Último bloco da Info1, e o novo passa a ser o inicio, e depois adiciona o intervalo
           
-          Inf23 Informacao_inserir = { .bloco_inicio = 0, .bloco_fim = qtd_blocos - 1, .intervalo = qtd_blocos, .status = OCUPADO, .status_apagar = MANTER, .tam_total = (*Raiz)->info1.tam_total };
-          int operacao_insercao; 
-          insereArv23(Raiz, Informacao_inserir, NULL, NULL, &operacao_insercao); 
-          
-          if(operacao_insercao != 1){
-              //A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco
-              situacao = 6;
-          }
-          if((*Raiz)->info2.status_apagar == APAGAR && operacao_insercao == 1){
-             //na condição de ter só uma Info, ao alocar o total da Info original LIVRE pra OCUPADO, LIVRE Se torna Lixo, precisa ser eliminado
-        
+            Inf23 Informacao_inserir = { .bloco_inicio = 0, .bloco_fim = qtd_blocos - 1, .intervalo = qtd_blocos, .status = OCUPADO, .status_apagar = MANTER, .tam_total = (*Raiz)->info1.tam_total };
+            int operacao_insercao; 
 
-             operacao = percorrer_recuperar_Infos(*Raiz, &vetor_recuperado, &numero_infos); //A função irá percorrer a árvore e recuperar todas as Infos Válidas na árvore
+            if((*Raiz)->info1.status_apagar == MANTER){
+                //ainda resta parte do bloco único, criaremos um novo bloco. 
 
-             if(operacao == 1){
-                //como recuperamos a Info util, reconstruiremos em uma nova árvore
-                operacao =  reconstruir_arvore_23(Raiz, numero_infos, vetor_recuperado);
+                insereArv23(Raiz, Informacao_inserir, NULL, NULL, &operacao_insercao); 
+            
+                if(operacao_insercao != 1){
+                        //A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco
+                        situacao = 6;
+                }
 
-                if(operacao != 1){
-                    //falhou
-
-                    if(operacao == 0){
-                        //Falhou porque a Raiz que foi pra lá era Nula
-                        situacao = 5; //5 Significa que a árvore original que deveria ser liberada era inválida
-                    }
-                    if(operacao == 2){
-                        //Falhou na reconstrução da árvore
-                        situacao = 4; //4 significa que houve uma falha na reconstrução da árvore
-                    }
-                    if(operacao == 3){
-                        //Falhou na liberação da árvore antiga
-                        situacao = 3; //3 significa que houve uma falha na liberação da antiga árvore
-                    }
-               }
-
-
-
-             }else{
-                //houve falha na recuperação dos Nós
-                situacao = 2; 
-             }
-
-          }
+            }else if((*Raiz)->info1.status_apagar == APAGAR){
+                //situação onde o bloco foi inteiramente liberado, ele será restaurado e invertido a "chave"          
+                (*Raiz)->info1.bloco_inicio = 0; 
+                (*Raiz)->info1.bloco_fim = (*Raiz)->info1.tam_total; 
+                (*Raiz)->info1.intervalo = (*Raiz)->info1.tam_total + 1; 
+                (*Raiz)->info1.status = OCUPADO; 
+                (*Raiz)->info1.status_apagar = MANTER; 
+            } 
           
        }else if(operacao == 3 || operacao == 4 || operacao == 5){
           //3, 4 e 5 significam que tudo deu certo, mas um ou mais blocos precisam ser apagados        
@@ -263,20 +252,23 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
 
        printf("Essa é a liberação de memória do sistema\n"); 
 
-       do{
+       do {
             printf("Digite quantos blocos de memória (1mb) que deseja liberar: ");
-            //Validar pra não inserir valores negativos ou 0. 
-            scanf("%d", &qtd_blocos); 
+            
+            // Verifica se a entrada é válida
+            if (scanf("%d", &qtd_blocos) != 1) { // Se não conseguir ler um número
+                confirmacao = 0;
+                printf("Entrada inválida! Digite um número positivo.\n");
 
-            if(qtd_blocos > 0){ //validação de entrada
-                confirmacao = 1; 
-            }else{
-                confirmacao = 0; 
-                printf("Digite um valor positivo\n"); 
+                while (getchar() != '\n'); // Limpa o buffer
+            } else if (qtd_blocos > 0) { // Valida o número positivo
+                confirmacao = 1;
+            } else { // Caso o número seja negativo ou zero
+                confirmacao = 0;
+                printf("Digite um valor positivo\n");
             }
 
-
-       }while(confirmacao == 0);    
+    } while (confirmacao == 0);
 
        qtd_blocos = qtd_blocos + 1;  
        
@@ -305,48 +297,30 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
             // chama a função de criação do Nó, coleta o Último bloco da Info1, e o novo passa a ser o inicio, e depois adiciona o intervalo
           
             Inf23 Informacao_inserir = { .bloco_inicio = 0, .bloco_fim = qtd_blocos - 1, .intervalo = qtd_blocos, .status = LIVRE, .status_apagar = MANTER, .tam_total = (*Raiz)->info1.tam_total };
-            int operacao_insercao; 
-            insereArv23(Raiz, Informacao_inserir, NULL, NULL, &operacao_insercao); 
+            int operacao_insercao;
+
+            if((*Raiz)->info1.status_apagar == MANTER){
+                //ainda resta parte do bloco único, criaremos um novo bloco. 
+
+                insereArv23(Raiz, Informacao_inserir, NULL, NULL, &operacao_insercao); 
             
-            if(operacao_insercao != 1){
-                //A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco
-                situacao = 6;
-            }
-            if((*Raiz)->info2.status_apagar == APAGAR && operacao_insercao == 1){
-                //na condição de ter só uma Info, ao alocar o total da Info original OCUPADO pra LIVRE, OCUPADO Se torna Lixo, precisa ser eliminado
-            
-
-                operacao = percorrer_recuperar_Infos(*Raiz, &vetor_recuperado, &numero_infos); //A função irá percorrer a árvore e recuperar todas as Infos Válidas na árvore
-
-                if(operacao == 1){
-                    //como recuperamos a Info util, reconstruiremos em uma nova árvore
-                    operacao =  reconstruir_arvore_23(Raiz, numero_infos, vetor_recuperado);
-
-                    if(operacao != 1){
-                        //falhou
-
-                        if(operacao == 0){
-                            //Falhou porque a Raiz que foi pra lá era Nula
-                            situacao = 5; //5 Significa que a árvore original que deveria ser liberada era inválida
-                        }
-                        if(operacao == 2){
-                            //Falhou na reconstrução da árvore
-                            situacao = 4; //4 significa que houve uma falha na reconstrução da árvore
-                        }
-                        if(operacao == 3){
-                            //Falhou na liberação da árvore antiga
-                            situacao = 3; //3 significa que houve uma falha na liberação da antiga árvore
-                        }
+                if(operacao_insercao != 1){
+                        //A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco
+                        situacao = 6;
                 }
 
 
 
-                }else{
-                    //houve falha na recuperação dos Nós
-                    situacao = 2; 
-                }
+            }else if((*Raiz)->info1.status_apagar == APAGAR){
+                 //situação onde o bloco foi inteiramente liberado, ele será restaurado e invertido a "chave"            
+                (*Raiz)->info1.bloco_inicio = 0; 
+                (*Raiz)->info1.bloco_fim = (*Raiz)->info1.tam_total; 
+                (*Raiz)->info1.intervalo = (*Raiz)->info1.tam_total + 1; 
+                (*Raiz)->info1.status = LIVRE; 
+                (*Raiz)->info1.status_apagar = MANTER; 
 
-            }
+            } 
+ 
        }else if(operacao == 3 || operacao == 4 || operacao == 5){
           //3, 4 e 5 significam que tudo deu certo, mas um ou mais blocos precisam ser apagados        
           
