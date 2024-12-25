@@ -23,7 +23,7 @@ Arv23Mem *criar_no_Arv23(Inf23 Info, Arv23Mem *Filho_esq, Arv23Mem *Filho_cen){
         Novo_no->N_infos = 1; 
     }
 
-    return Novo_no;    
+    return Novo_no; 
 
 
 }
@@ -624,70 +624,6 @@ int agrupar_infos(Arv23Mem *Raiz, Inf23 **info_anterior) {
 
 }
 
-
-//Função que cuida de percorrer e fazer uma cópia de todas as infos da árvore, desconsiderando os que serão excluídos
-int percorrer_recuperar_Infos(Arv23Mem *Raiz, Inf23 ***vetor_recuperado, int *numero_infos) {
-    int operacao = 1; // 1 significa que a operação deu certo
-
-    if (Raiz != NULL) {
-        // Percorrer a subárvore esquerda
-        operacao = percorrer_recuperar_Infos(Raiz->esq, vetor_recuperado, numero_infos);
-
-        // Adicionar Info1 ao vetor se estiver com a TAG MANTER
-        if (operacao == 1 && Raiz->info1.status_apagar == MANTER) {
-            Inf23 **temp = (Inf23 **)realloc(*vetor_recuperado, (*numero_infos + 1) * sizeof(Inf23 *));
-            if (temp == NULL) {
-                operacao = 0; // Falha na realocação
-            } else {
-                *vetor_recuperado = temp;
-                Inf23 *nova_info = (Inf23 *)malloc(sizeof(Inf23));
-                if (nova_info == NULL) {
-                    operacao = 0; // Falha na alocação
-                } else {
-                    *nova_info = Raiz->info1; // Copia os dados
-                    (*vetor_recuperado)[*numero_infos] = nova_info;
-                    (*numero_infos)++;
-                }
-            }
-        }
-
-        // Percorrer a subárvore cent1
-        if (operacao == 1) {
-            operacao = percorrer_recuperar_Infos(Raiz->cent, vetor_recuperado, numero_infos);
-        }
-
-        // Adicionar Info2 ao vetor se existir e estiver com a TAG MANTER
-        if (operacao == 1 && Raiz->N_infos == 2 && Raiz->info2.status_apagar == MANTER) {
-            Inf23 **temp = (Inf23 **)realloc(*vetor_recuperado, (*numero_infos + 1) * sizeof(Inf23 *));
-            if (temp == NULL) {
-                operacao = 0;
-            } else {
-                *vetor_recuperado = temp;
-                Inf23 *nova_info = (Inf23 *)malloc(sizeof(Inf23));
-                if (nova_info == NULL) {
-                    operacao = 0;
-                } else {
-                    *nova_info = Raiz->info2; // Copia os dados
-                    (*vetor_recuperado)[*numero_infos] = nova_info;
-                    (*numero_infos)++;
-                }
-            }
-        }
-
-        // Percorrer a subárvore direita
-        if (operacao == 1) {
-            operacao = percorrer_recuperar_Infos(Raiz->dir, vetor_recuperado, numero_infos);
-        }
-
-        
-   }
-   return operacao; // Retorna o status da operação
-}
-
-
-
-//Função de liberação
-
 void liberarArvore23(Arv23Mem **Raiz) {
     if (*Raiz != NULL) {
         // Libera as subárvores recursivamente
@@ -702,52 +638,79 @@ void liberarArvore23(Arv23Mem **Raiz) {
 }
 
 
+
+
 //Funções auxiliares de melhoria de leitura de código. 
 
 //Essa função constrói uma nova árvore, com o vetor recuperado de Infos, e libera a árvore antiga, atribuindo a arvore nova ao antigo endereço
 
-int reconstruir_arvore_23(Arv23Mem **Raiz, int tamanho_vetor, Inf23 **vetor_recuperado){
-    int operacao = 0; //0 significa que não deu certo
-    if(*Raiz != NULL){
-        int situacao_atual = 1; 
-        Arv23Mem *Nova_Raiz; 
-        Nova_Raiz = NULL; 
-        Inf23 Nova_insercao; 
-        operacao = 1; //por enquanto, tratamos como uma operação que deu certo. 
+int reconstruir_Arv(Arv23Mem *Raiz, Arv23Mem **Nova_Raiz){
+    int operacao;
+    operacao = 1; //indica sucesso
+    if(Raiz != NULL){
+        operacao = reconstruir_Arv(Raiz->esq, Nova_Raiz); 
 
-        for(int i = 0; i < tamanho_vetor; i++){
-           Nova_insercao = *(vetor_recuperado[i]);
-           
-           insereArv23(&Nova_Raiz, Nova_insercao, NULL, NULL, &situacao_atual); 
+        if(operacao == 1){
+            
+            if(Raiz->info1.status_apagar == MANTER){
+            
+                //A operação está prosseguindo conforme esperado
+                insereArv23(Nova_Raiz, Raiz->info1, NULL, NULL, &operacao); 
+                
+            }
 
-           if(situacao_atual != 1){
-              //falhou na criação da nova árvore 
-              liberarArvore23(&Nova_Raiz); //Como falhou, é preciso liberar o que foi alocado
-              operacao = 2; //2 significa que falhou na criação da nova árvore
-              break;  
-           }           
-        
-        }
+            if(operacao == 1 && Raiz->N_infos == 2 && Raiz->info2.status_apagar == MANTER){    
+                                   
+                insereArv23(Nova_Raiz, Raiz->info2, NULL, NULL, &operacao);                     
 
-        if(situacao_atual == 1){
-             //com a nova árvore criada com sucesso, podemos liberar a árvore antiga. 
+            }
+            //Se estiver tudo ok com a inserção na nova arvore das Info1 e Info2(talvez)
+            if(operacao == 1){
 
-             liberarArvore23(Raiz); 
+                operacao = reconstruir_Arv(Raiz->cent, Nova_Raiz); //Manda pro centro
 
-             if(*Raiz == NULL){
-                //A árvore foi limpa com sucesso. 
-                // Com isso a gente pode atribuir a nova árvore
-
-                *Raiz = Nova_Raiz; 
-            }else{
-                //A liberação falhou
-
-                operacao = 3; //significa que a operação falhou na liberação da árvore
+                if(operacao == 1){
+                    operacao = reconstruir_Arv(Raiz->dir, Nova_Raiz); //Manda pra direita
+                }
             }
 
         }
+
+    }
+    return operacao;
+}
+
+int auxiliar_reconstrucao(Arv23Mem **Raiz){
+    int operacao;
+    operacao = 0; //0 indica que não deu certo
+    if(*Raiz != NULL){
+        //Primeiro passo é criar uma nova Raiz temporaria
+        Arv23Mem *Nova_Raiz; 
+        Nova_Raiz = NULL; 
+
+        operacao = reconstruir_Arv(*Raiz, &Nova_Raiz);
+
+        if(operacao == 1){
+            //Arvore reconstruida com sucesso, agora precisamos eliminar a antiga
+            liberarArvore23(Raiz); 
+
+            if(*Raiz == NULL){
+                //Arvore eliminada, então atribuiremos a nova
+                *Raiz = Nova_Raiz;
+                operacao = 1; //sucesso
+
+            }else{
+                 operacao = 3; //significa que a operação falhou na liberação da árvore
+            }
+        }else{
+            //Falhou na reconstrução da nova árvore
+            operacao = 2; //2 significa que falhou na criação da nova árvore
+        }
+
+
     }
 
-    return operacao; 
+    return operacao;
 }
+
 
