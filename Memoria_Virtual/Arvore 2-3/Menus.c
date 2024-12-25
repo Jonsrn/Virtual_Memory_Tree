@@ -12,7 +12,7 @@ void menu_principal(){
 }
 
 void sobre(){
-    printf("Trabalho desenvolvido por: Jonathan dos Santos Barbosa\n"); 
+    printf("Trabalho desenvolvido por: Jonathan dos Santos Barbosa\nClistenes Rodger\n"); 
 }
 
 void funcionalidades(){
