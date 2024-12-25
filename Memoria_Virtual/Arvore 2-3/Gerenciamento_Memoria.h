@@ -46,11 +46,10 @@ Arv23Mem *QuebraNo(Arv23Mem **No, Inf23 Info, Inf23 *Promove, Arv23Mem *Filho); 
 Arv23Mem *insereArv23(Arv23Mem **no, Inf23 Info, Inf23 *promove, Arv23Mem **Pai, int *situacao); //Função base de inserção na árvore 2-3
 void imprimirArvore23(Arv23Mem *raiz); //Função base de impressão
 void imprimirInfo(Inf23 info); //imprime informações detalhadas de cada Info
-int percorrer_recuperar_Infos(Arv23Mem *Raiz, Inf23 ***vetor_recuperado, int *numero_infos); //Essa função percorre a árvore original, e faz uma cópia, excluindo as INFOS com a TAG APAGAR
-void liberarArvore23(Arv23Mem **Raiz); //Libera a arvore 2-3
 int eh_ultimo(Arv23Mem *Raiz_atual, Arv23Mem *Raiz_original, int localizacao_info); //Função pra saber se estou no ultimo bloco
-int reconstruir_arvore_23(Arv23Mem **Raiz, int tamanho_vetor, Inf23 **vetor_recuperado); //Essa função modulariza operações de recriação da árvore e liberação da árvore antiga
-
+int reconstruir_Arv(Arv23Mem *Raiz, Arv23Mem **Nova_Raiz); //Constrói uma nova árvore mantendo apenas as infos com a TAG Manter
+int auxiliar_reconstrucao(Arv23Mem **Raiz); //Essa função modulariza operações de recriação da árvore e liberação da árvore antiga
+void liberarArvore23(Arv23Mem **Raiz); 
 
 
 

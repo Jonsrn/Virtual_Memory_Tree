@@ -102,13 +102,12 @@ void construir_memoria_do_sistema(Arv23Mem **Raiz) {
 void alocar_memoria_para_programa(Arv23Mem **Raiz){
     int situacao;  
     if(*Raiz != NULL){
-        int qtd_blocos, operacao, numero_infos, confirmacao;
-        Inf23 *bloco_anterior, *Info_anterior, **vetor_recuperado;
+        int qtd_blocos, operacao, confirmacao;
+        Inf23 *bloco_anterior, *Info_anterior;
         bloco_anterior = NULL;
         Info_anterior = NULL; 
-        vetor_recuperado = NULL;
         situacao = 1; //deu certo, partimos desse pressuposto
-        numero_infos = 0; 
+       
 
 
 
@@ -144,12 +143,10 @@ void alocar_memoria_para_programa(Arv23Mem **Raiz){
           situacao = 7; 
        }else if(operacao == 2 || operacao == 3 || operacao == 4){              
 
-           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, (*Raiz)); // A alocação não usou o bloco final
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, (*Raiz)); // A alocação não usou o bloco final, vai da esquerda pra direita
        }else if(operacao == 5 || operacao == 6){ 
-                 
-                   
-           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, (*Raiz)); //A alocação usou o bloco final    
-
+                                    
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, (*Raiz)); //A alocação usou o bloco final, vai da direita pra esquerda    
          
        }
        
@@ -183,45 +180,37 @@ void alocar_memoria_para_programa(Arv23Mem **Raiz){
             } 
           
        }else if(operacao == 3 || operacao == 4 || operacao == 5){
-          //3, 4 e 5 significam que tudo deu certo, mas um ou mais blocos precisam ser apagados        
+          //3, 4 e 5 significam que tudo deu certo, mas um ou mais blocos precisam ser apagados    
+
+           
           
           //se tem bloco que vai sumir, precisamos ver se vai precisar agrupar, agrupando caso necessário
           operacao = agrupar_infos(*Raiz, &Info_anterior); //o agrupamento vai juntar blocos que ficarão adjacentes e sinalizará mais um bloco pra remoção, caso necessário 
           //A função de agrupar Infos retorna 1 se precisou agrupar, e 0 caso não tenha sido preciso, nesse caso, não é preciso validar, pq de toda forma tem pelo menos uma Info que tem de ser eliminada  
           
-          //No melhor dos cenários (apagando a Info do Final), teremos de apagar uma INFO, no pior dos casos, agrupamos e eliminamos duas Infos
-          operacao = percorrer_recuperar_Infos(*Raiz, &vetor_recuperado, &numero_infos); //A função irá percorrer a árvore e recuperar todas as Infos Válidas na árvore
           
-          //criar uma função pra percorrer o vetor, criar a nova arvore, liberar a árvore antiga e retornar a nova
-          
-          if(operacao == 1){
-             //Deu certo a recuperação de todas Infos
-            operacao =  reconstruir_arvore_23(Raiz, numero_infos, vetor_recuperado);  
 
-            if(operacao != 1){
-                //falhou
+          operacao =  auxiliar_reconstrucao(Raiz); 
 
-                if(operacao == 0){
-                    //Falhou porque a Raiz que foi pra lá era Nula
-                    situacao = 5; //5 Significa que a árvore original que deveria ser liberada era inválida
-                }
-                if(operacao == 2){
-                    //Falhou na reconstrução da árvore
-                    situacao = 4; //4 significa que houve uma falha na reconstrução da árvore
-                }
-                if(operacao == 3){
-                    //Falhou na liberação da árvore antiga
-                    situacao = 3; //3 significa que houve uma falha na liberação da antiga árvore
-                }
+          if(operacao != 1){
+            //falhou
+
+            if(operacao == 0){
+                //Falhou porque a Raiz que foi pra lá era Nula
+                situacao = 5; //5 Significa que a árvore original que deveria ser liberada era inválida
             }
+            if(operacao == 2){
+                //Falhou na reconstrução da árvore
+                situacao = 4; //4 significa que houve uma falha na reconstrução da árvore
+            }
+            if(operacao == 3){
+                //Falhou na liberação da árvore antiga
+                situacao = 3; //3 significa que houve uma falha na liberação da antiga árvore
+            }
+          }
 
 
 
-
-          }else{
-             //houve falha na recuperação dos Nós
-             situacao = 2;          
-          }     
           
        } 
 
@@ -284,9 +273,9 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
           //Não há espaço disponivel suficiente na memória
           situacao = 7; 
        }else if(operacao == 2 || operacao == 3 || operacao == 4){
-           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, *Raiz); // A alocação não usou o bloco final
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, *Raiz); // A alocação não usou o bloco final, vai da esquerda pra direita
        }else if(operacao == 5 || operacao == 6){        
-           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, *Raiz); //A alocação usou o bloco final           
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, *Raiz); //A alocação usou o bloco final, vai da direita pra esquerda           
        }
 
 
@@ -328,14 +317,9 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
           operacao = agrupar_infos(*Raiz, &Info_anterior); //o agrupamento vai juntar blocos que ficarão adjacentes e sinalizará mais um bloco pra remoção, caso necessário 
           //A função de agrupar Infos retorna 1 se precisou agrupar, e 0 caso não tenha sido preciso, nesse caso, não é preciso validar, pq de toda forma tem pelo menos uma Info que tem de ser eliminada  
           
-          //No melhor dos cenários (apagando a Info do Final), teremos de apagar uma INFO, no pior dos casos, agrupamos e eliminamos duas Infos
-          operacao = percorrer_recuperar_Infos(*Raiz, &vetor_recuperado, &numero_infos); //A função irá percorrer a árvore e recuperar todas as Infos Válidas na árvore
           
-          //criar uma função pra percorrer o vetor, criar a nova arvore, liberar a árvore antiga e retornar a nova
+           operacao =  auxiliar_reconstrucao(Raiz); 
           
-          if(operacao == 1){
-             //Deu certo a recuperação de todas Infos
-            operacao =  reconstruir_arvore_23(Raiz, numero_infos, vetor_recuperado);  
 
             if(operacao != 1){
                 //falhou
@@ -357,13 +341,7 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
 
 
 
-          }else{
-             //houve falha na recuperação dos Nós
-             situacao = 2;          
-        }     
-          
-    }  
-       
+          }        
 
    }else{
       //Não há dataset montado
