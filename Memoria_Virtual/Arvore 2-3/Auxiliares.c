@@ -140,14 +140,13 @@ void alocar_memoria_para_programa(Arv23Mem **Raiz){
 
       if(operacao == 0){
           //Não há espaço disponivel suficiente na memória
-          situacao = 7; 
+          situacao = 5; 
        }else if(operacao == 2 || operacao == 3 || operacao == 4){              
-
-           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, (*Raiz)); // A alocação não usou o bloco final, vai da esquerda pra direita
+           // A alocação não usou o bloco final, vai da esquerda pra direita, ou seja, no percurso tradicional
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, (*Raiz)); 
        }else if(operacao == 5 || operacao == 6){ 
-                                    
-           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, (*Raiz)); //A alocação usou o bloco final, vai da direita pra esquerda    
-         
+           //A alocação usou o bloco final, vai da direita pra esquerda, ou seja, de maneira invertida                         
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, (*Raiz));              
        }
        
        
@@ -167,7 +166,7 @@ void alocar_memoria_para_programa(Arv23Mem **Raiz){
             
                 if(operacao_insercao != 1){
                         //A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco
-                        situacao = 6;
+                        situacao = 4;
                 }
 
             }else if((*Raiz)->info1.status_apagar == APAGAR){
@@ -180,38 +179,27 @@ void alocar_memoria_para_programa(Arv23Mem **Raiz){
             } 
           
        }else if(operacao == 3 || operacao == 4 || operacao == 5){
-          //3, 4 e 5 significam que tudo deu certo, mas um ou mais blocos precisam ser apagados    
-
-           
+          //3, 4 e 5 significam que tudo deu certo, mas um ou mais blocos precisam ser apagados        
           
           //se tem bloco que vai sumir, precisamos ver se vai precisar agrupar, agrupando caso necessário
           operacao = agrupar_infos(*Raiz, &Info_anterior); //o agrupamento vai juntar blocos que ficarão adjacentes e sinalizará mais um bloco pra remoção, caso necessário 
           //A função de agrupar Infos retorna 1 se precisou agrupar, e 0 caso não tenha sido preciso, nesse caso, não é preciso validar, pq de toda forma tem pelo menos uma Info que tem de ser eliminada  
           
-          
-
-          operacao =  auxiliar_reconstrucao(Raiz); 
+          operacao = auxiliar_remocao(Raiz); 
 
           if(operacao != 1){
-            //falhou
-
+            //Falhou, mas onde
             if(operacao == 0){
-                //Falhou porque a Raiz que foi pra lá era Nula
-                situacao = 5; //5 Significa que a árvore original que deveria ser liberada era inválida
+                //Falhou porque a Raiz que foi pra lá era NULA
+                situacao = 3; 
             }
+
             if(operacao == 2){
-                //Falhou na reconstrução da árvore
-                situacao = 4; //4 significa que houve uma falha na reconstrução da árvore
+                //Falhou porque nenhuma Info a ser excluída foi encontrada
+                situacao = 2;
             }
-            if(operacao == 3){
-                //Falhou na liberação da árvore antiga
-                situacao = 3; //3 significa que houve uma falha na liberação da antiga árvore
-            }
-          }
+          } 
 
-
-
-          
        } 
 
 
@@ -230,13 +218,11 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
    int situacao; 
 
    if(*Raiz != NULL){
-       int qtd_blocos, operacao, numero_infos, confirmacao;
-       Inf23 *bloco_anterior, *Info_anterior, **vetor_recuperado;
+       int qtd_blocos, operacao, confirmacao;
+       Inf23 *bloco_anterior, *Info_anterior;
        bloco_anterior = NULL;
        Info_anterior = NULL; 
-       vetor_recuperado = NULL;
        situacao = 1; //deu certo, partimos desse pressuposto
-       numero_infos = 0;
 
 
        printf("Essa é a liberação de memória do sistema\n"); 
@@ -260,10 +246,6 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
     } while (confirmacao == 0);
 
        qtd_blocos = qtd_blocos + 1;  
-       
-
-
-
 
 
 
@@ -271,11 +253,13 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
       
        if(operacao == 0){
           //Não há espaço disponivel suficiente na memória
-          situacao = 7; 
+          situacao = 5; 
        }else if(operacao == 2 || operacao == 3 || operacao == 4){
-           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, *Raiz); // A alocação não usou o bloco final, vai da esquerda pra direita
+           // A alocação não usou o bloco final, vai da esquerda pra direita, ou seja, no percurso tradicional
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 1, *Raiz); 
        }else if(operacao == 5 || operacao == 6){        
-           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, *Raiz); //A alocação usou o bloco final, vai da direita pra esquerda           
+           //A alocação usou o bloco final, vai da direita pra esquerda, ou seja, de maneira invertida  
+           ajustando_os_intervalos(*Raiz, &bloco_anterior, 2, *Raiz);           
        }
 
 
@@ -295,7 +279,7 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
             
                 if(operacao_insercao != 1){
                         //A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco
-                        situacao = 6;
+                        situacao = 4;
                 }
 
 
@@ -317,29 +301,20 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
           operacao = agrupar_infos(*Raiz, &Info_anterior); //o agrupamento vai juntar blocos que ficarão adjacentes e sinalizará mais um bloco pra remoção, caso necessário 
           //A função de agrupar Infos retorna 1 se precisou agrupar, e 0 caso não tenha sido preciso, nesse caso, não é preciso validar, pq de toda forma tem pelo menos uma Info que tem de ser eliminada  
           
-          
-           operacao =  auxiliar_reconstrucao(Raiz); 
-          
+          operacao = auxiliar_remocao(Raiz); 
 
-            if(operacao != 1){
-                //falhou
-
-                if(operacao == 0){
-                    //Falhou porque a Raiz que foi pra lá era Nula
-                    situacao = 5; //5 Significa que a árvore original que deveria ser liberada era inválida
-                }
-                if(operacao == 2){
-                    //Falhou na reconstrução da árvore
-                    situacao = 4; //4 significa que houve uma falha na reconstrução da árvore
-                }
-                if(operacao == 3){
-                    //Falhou na liberação da árvore antiga
-                    situacao = 3; //3 significa que houve uma falha na liberação da antiga árvore
-                }
+          if(operacao != 1){
+            //Falhou, mas onde
+            if(operacao == 0){
+                //Falhou porque a Raiz que foi pra lá era NULA
+                situacao = 3;
             }
 
-
-
+            if(operacao == 2){
+                //Falhou porque nenhuma Info a ser excluída foi encontrada
+                situacao = 2;
+            }
+          }
 
           }        
 
@@ -348,10 +323,8 @@ void desalocar_memoria_sistema(Arv23Mem **Raiz){
       situacao = 0; 
    }
 
-
    situacao_desalocacao_memoria(situacao);   
  
-
 }
 
 

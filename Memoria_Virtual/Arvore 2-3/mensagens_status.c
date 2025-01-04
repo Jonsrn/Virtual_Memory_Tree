@@ -21,21 +21,15 @@ void situacao_alocacao_memoria(int situacao){
         printf("Alocação da memória feita com sucesso\n"); 
     }
     if(situacao == 2){
-        printf("A operação falhou, porque houve falha na recuperação dos Nós\n");
+        printf("A operação falhou, porque nenhuma Info a ser excluída foi encontrada\n");
     }
     if(situacao == 3){
-        printf("A operação falhou, porque houve falha na liberação da árvore antiga\n"); 
+        printf("A operação falhou, porque a Raiz se tornou NULA\n"); 
     }
     if(situacao == 4){
-        printf("A operação falhou, porque houve falha na reconstrução da árvore\n");
-    }
-    if(situacao == 5){
-        printf("A operação falhou porque a Raiz manipulada se tornou inválida\n"); 
-    }
-    if(situacao == 6){
         printf("A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco\n");
     }
-    if(situacao == 7){
+    if(situacao == 5){
         printf("A operação falhou, porque não há espaço disponivel suficiente na memória\n");
     }
 }
@@ -48,21 +42,15 @@ void situacao_desalocacao_memoria(int situacao){
         printf("Desalocação da memória feita com sucesso\n"); 
     }
     if(situacao == 2){
-        printf("A operação falhou, porque houve falha na recuperação dos Nós\n");
+        printf("A operação falhou, porque nenhuma Info a ser excluída foi encontrada\n");
     }
     if(situacao == 3){
-        printf("A operação falhou, porque houve falha na liberação da árvore antiga\n"); 
+        printf("A operação falhou, porque a Raiz se tornou NULA\n"); 
     }
     if(situacao == 4){
-        printf("A operação falhou, porque houve falha na reconstrução da árvore\n");
-    }
-    if(situacao == 5){
-        printf("A operação falhou porque a Raiz manipulada se tornou inválida\n"); 
-    }
-    if(situacao == 6){
         printf("A operação de inserção do novo nó falhou, pois houve falha na criação de um novo bloco\n");
     }
-    if(situacao == 7){
+    if(situacao == 5){
         printf("A operação falhou, porque não há espaço disponivel suficiente na memória\n");
     }
 
