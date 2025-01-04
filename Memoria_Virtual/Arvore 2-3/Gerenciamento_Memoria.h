@@ -55,6 +55,28 @@ void liberarArvore23(Arv23Mem **Raiz);
 
 
 
+//Prótotipo das Funções de Remoção da Arvore 2-3
+
+int auxiliar_remocao(Arv23Mem **Raiz); //Auxiliar principal que modulariza a remoção pra essa implementação
+int situacao_da_arvore(Arv23Mem **Raiz, Arv23Mem **Pai, Inf23 Info); //Ponte intermediaria da remoção
+int auxiliar_reconstrucao(Arv23Mem **Raiz); //Auxiliar da reconstrução
+void coletar_infos_para_remover(Arv23Mem *Raiz, Inf23 Vetor_Infos[], int *numero_infos); //Coleta as Infos destinadas a remoção
+void liberarArvore23(Arv23Mem **Raiz); //Função que desaloca e libera a árvore por completo
+int reconstruir_Arv(Arv23Mem *Raiz, Arv23Mem **Nova_Raiz); //Função que reconstrói a árvore
+int verificador_consistencia(Arv23Mem *Raiz, Arv23Mem **Pai); //Função que verifica a consistência da árvore após a última remoção (Se houve desbalanceamento, se algum filho ficou fora do lugar, ou se alguma sub-árvore está mais profunda que a outra)
+int Altura(Arv23Mem *Raiz); //Função para descobrir a áltura do Nó
+int Remover_Arv23(Arv23Mem **Raiz, Arv23Mem **Pai, Inf23 Info); //Função principal de remoção
+int tratando_pendencias(Arv23Mem **Raiz, Arv23Mem **Pai, Inf23 Info, int posicao); //Cuida das pendencias que não foi possivel de remover da localização atual
+int Remover_Info_Nao_Folha(Arv23Mem **Raiz, int Localizacao); //Cuida de remover a Info que não está em uma Folha
+int agregar_infos(Arv23Mem **Raiz, int posicao); //Função que junta Nós
+int RemoverInfo1Folha(Arv23Mem **Raiz, Arv23Mem **Pai); //Cuida dos casos que a remoção é Info1 Folha (em caso de pendencias, a função tratando_pendencias)
+Inf23 Pegar_Menor(Arv23Mem *Raiz, int *operacao); //pega a menor Informação
+Inf23 Pegar_Maior(Arv23Mem *Raiz, int *operacao); //Pega a Maior Informação
+int contar_descendentes(Arv23Mem *Raiz); //Conta o número de descendentes
+
+
+
+
 
 
 //Protótipo das Funções Intermediarias
