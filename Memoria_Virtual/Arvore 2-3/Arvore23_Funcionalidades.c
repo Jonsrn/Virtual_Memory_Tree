@@ -12,10 +12,7 @@ Arv23Mem *criar_no_Arv23(Inf23 Info, Arv23Mem *Filho_esq, Arv23Mem *Filho_cen){
     Novo_no = NULL; 
 
     Novo_no = (Arv23Mem*)malloc(sizeof(Arv23Mem)); 
-    if(Novo_no == NULL){
-        exit(1);
-    }else{
-        memset(Novo_no, 0, sizeof(Arv23Mem));
+    if(Novo_no != NULL){
         Novo_no->info1 = Info;  
         Novo_no->esq = Filho_esq; 
         Novo_no->cent = Filho_cen;  
@@ -24,7 +21,6 @@ Arv23Mem *criar_no_Arv23(Inf23 Info, Arv23Mem *Filho_esq, Arv23Mem *Filho_cen){
     }
 
     return Novo_no; 
-
 
 }
 
@@ -467,7 +463,7 @@ int alocar_memoria(Arv23Mem *Raiz, int qtd_blocos, Arv23Mem *Raiz_Original) {
                             alocou = 2; 
                         }else if(situacao == 2){
                             //é o ultimo bloco
-                            alocou = 6; 
+                            alocou = 6; //é o ultimo bloco, mas não usei tudo dele
                         }
                         break;
                     } else {
@@ -480,7 +476,7 @@ int alocar_memoria(Arv23Mem *Raiz, int qtd_blocos, Arv23Mem *Raiz_Original) {
                             alocou = 3; //3 significa que preciso de todo o bloco, mas não sou o ultimo
                         }else if(situacao == 2){
                             //é o ultimo bloco
-                            alocou = 5; //5 
+                            alocou = 5; //significa que é o ultimo bloco, e usei tudo dele
                         }
                         
                         break;
@@ -624,93 +620,11 @@ int agrupar_infos(Arv23Mem *Raiz, Inf23 **info_anterior) {
 
 }
 
-void liberarArvore23(Arv23Mem **Raiz) {
-    if (*Raiz != NULL) {
-        // Libera as subárvores recursivamente
-        liberarArvore23(&(*Raiz)->esq);
-        liberarArvore23(&(*Raiz)->cent);
-        liberarArvore23(&(*Raiz)->dir);
-
-        // Libera o próprio nó
-        free(*Raiz);
-        *Raiz = NULL; 
-    }
-}
 
 
 
 
-//Funções auxiliares de melhoria de leitura de código. 
-
-//Essa função constrói uma nova árvore, com o vetor recuperado de Infos, e libera a árvore antiga, atribuindo a arvore nova ao antigo endereço
-
-int reconstruir_Arv(Arv23Mem *Raiz, Arv23Mem **Nova_Raiz){
-    int operacao;
-    operacao = 1; //indica sucesso
-    if(Raiz != NULL){
-        operacao = reconstruir_Arv(Raiz->esq, Nova_Raiz); 
-
-        if(operacao == 1){
-            
-            if(Raiz->info1.status_apagar == MANTER){
-            
-                //A operação está prosseguindo conforme esperado
-                insereArv23(Nova_Raiz, Raiz->info1, NULL, NULL, &operacao); 
-                
-            }
-
-            if(operacao == 1 && Raiz->N_infos == 2 && Raiz->info2.status_apagar == MANTER){    
-                                   
-                insereArv23(Nova_Raiz, Raiz->info2, NULL, NULL, &operacao);                     
-
-            }
-            //Se estiver tudo ok com a inserção na nova arvore das Info1 e Info2(talvez)
-            if(operacao == 1){
-
-                operacao = reconstruir_Arv(Raiz->cent, Nova_Raiz); //Manda pro centro
-
-                if(operacao == 1){
-                    operacao = reconstruir_Arv(Raiz->dir, Nova_Raiz); //Manda pra direita
-                }
-            }
-
-        }
-
-    }
-    return operacao;
-}
-
-int auxiliar_reconstrucao(Arv23Mem **Raiz){
-    int operacao;
-    operacao = 0; //0 indica que não deu certo
-    if(*Raiz != NULL){
-        //Primeiro passo é criar uma nova Raiz temporaria
-        Arv23Mem *Nova_Raiz; 
-        Nova_Raiz = NULL; 
-
-        operacao = reconstruir_Arv(*Raiz, &Nova_Raiz);
-
-        if(operacao == 1){
-            //Arvore reconstruida com sucesso, agora precisamos eliminar a antiga
-            liberarArvore23(Raiz); 
-
-            if(*Raiz == NULL){
-                //Arvore eliminada, então atribuiremos a nova
-                *Raiz = Nova_Raiz;
-                operacao = 1; //sucesso
-
-            }else{
-                 operacao = 3; //significa que a operação falhou na liberação da árvore
-            }
-        }else{
-            //Falhou na reconstrução da nova árvore
-            operacao = 2; //2 significa que falhou na criação da nova árvore
-        }
 
 
-    }
-
-    return operacao;
-}
 
 
